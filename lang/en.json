@@ -1,0 +1,38 @@
+{
+    "easy-token": {
+        "settings": {
+            "directories": {
+                "name": "Directories",
+                "label": "Setup Directories",
+                "hint": "Upload directories for the different actor types."
+            }
+        },
+        "templates": {
+            "editor": {
+                "warning": "This token is not linked to any actor, changes will only be applied to this particular Token.",
+                "border": "Border",
+                "background": "Background",
+                "save-avatar": "Save Avatar Image",
+                "save-token": "Save Token Image",
+                "save-all": "Save All & Close",
+                "load-avatar": "Load Avatar Image",
+                "open-local": "Open Local Image",
+                "open-server": "Open Server Image"
+            },
+            "directories": {
+                "source": {
+                    "label": "Source",
+                    "hint": "The data source to which the file will be uploaded."
+                },
+                "avatar": "Avatar",
+                "token": "Token"
+            }
+        },
+        "notifications": {
+            "editor": {
+                "avatar-saved": "Token image was successfully saved '{path}'",
+                "token-saved": "Avatar image was successfully saved '{path}'"
+            }
+        }
+    }
+}

@@ -1,0 +1,39 @@
+<div class="canvas"></div>
+
+{{#if isToken}}
+<div class="warning">{{easyToken 'editor.warning'}}</div>
+{{/if}}
+
+<div class="menu">
+    <div class="color-pickers">
+        <div class="color-picker border-color">
+            <input type="color" value="#ffffff" />
+            <label>{{easyToken 'editor.border'}}</label>
+        </div>
+        <div class="color-picker background-color">
+            <input type="color" value="#ffffff" />
+            <label>{{easyToken 'editor.background'}}</label>
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="button load-avatar">
+            {{easyToken 'editor.load-avatar'}}
+        </button>
+        <button class="button open-local">
+            {{easyToken 'editor.open-local'}}
+            <input type="file" accept="image/*" />
+        </button>
+        <button class="button open-server"{{#unless canBrowse}} disabled{{/unless}}>
+            {{easyToken 'editor.open-server'}}
+        </button>
+        <button class="button save-avatar" disabled>
+            {{easyToken 'editor.save-avatar'}}
+        </button>
+        <button class="button save-token" disabled>
+            {{easyToken 'editor.save-token'}}
+        </button>
+        <button class="button save-all" disabled>
+            {{easyToken 'editor.save-all'}}
+        </button>
+    </div>
+</div>

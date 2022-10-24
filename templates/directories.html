@@ -1,0 +1,34 @@
+<form autocomplete="off" spellcheck="false">
+    <label class="source">{{easyToken 'directories.source.label'}}</label>
+    <select name="source">
+        {{#select source}}
+        <option value="data">data</option>
+        {{#if hasS3}}
+        <option value="s3">s3</option>
+        {{/if}} {{/select}}
+    </select>
+    <span>{{easyToken 'directories.source.hint'}}</span>
+    <hr />
+    <div class="list">
+        {{#each list}}
+        <h4>{{this.type}}</h4>
+        <label>
+            <span>{{easyToken 'directories.avatar'}}</span>
+            <input
+                type="text"
+                name="{{this.type}}.avatar"
+                placeholder="{{this.avatar.placeholder}}"
+                value="{{this.avatar.value}}"
+            />
+        </label>
+        <label>
+            <span>{{easyToken 'directories.token'}}</span>
+            <input type="text" name="{{this.type}}.token" placeholder="{{this.token.placeholder}}" value="{{this.token.value}}" />
+        </label>
+        {{/each}}
+    </div>
+    <div class="buttons">
+        <button><i class="fas fa-save"></i>Save</button>
+        <button class="cancel"><i class="fas fa-multiply"></i>Cancel</button>
+    </div>
+</form>

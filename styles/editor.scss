@@ -1,0 +1,75 @@
+[id^='easy-token-editor-'] {
+    .window-content {
+        position: relative;
+
+        .menu {
+            position: absolute;
+            top: 10px;
+            right: calc(var(--preview-size) / 2);
+            height: calc(100% - var(--preview-size) - 40px);
+            width: calc(var(--preview-size) * 0.6);
+            transform: translateX(50%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .color-pickers {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .color-picker {
+            display: grid;
+            grid-template-columns: 1fr;
+            align-items: center;
+            justify-items: center;
+            pointer-events: all;
+
+            > * {
+                grid-column: 1;
+                grid-row: 1;
+            }
+
+            > label {
+                pointer-events: none;
+                text-shadow: 0px 0px 4px white;
+                font-size: 2em;
+                font-weight: 900;
+            }
+
+            > input {
+                height: 80px;
+                width: 100%;
+            }
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+
+            .button {
+                font-weight: 900;
+                font-size: 1.1em;
+                pointer-events: all;
+
+                &.open-local > input {
+                    display: none;
+                }
+            }
+        }
+
+        .warning {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            color: #bb0000;
+            text-shadow: 0px 0px 4px white;
+            width: calc(100% - var(--preview-size));
+            text-align: center;
+        }
+    }
+}
