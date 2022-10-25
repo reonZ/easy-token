@@ -187,7 +187,7 @@ export class Editor extends Application {
         $html.find('.border-color > input').on('input', this._borderColorThrottle.bind(this))
         $html.find('.background-color > input').on('input', this._backgroundColorThrottle.bind(this))
 
-        $html.filter('.canvas').on('mousewheel', this.#onMouseWheel.bind(this))
+        $html.filter('.canvas').on('wheel', this.#onMouseWheel.bind(this))
 
         $html.find('.load-avatar').on('click', this.#onLoadAvatar.bind(this))
         $html.find('.open-local').on('click', this.#onOpenLocalFileBrowser.bind(this))

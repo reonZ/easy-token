@@ -14,7 +14,7 @@ To load an image in the editor you can:
 
 -   Drag & drop the image from your computer.
 
--   Drag & drop from an image from a website. If nothing appears, it means that the server hosting the image does not allow CORS, simply save the image on your computer to use it.
+-   Drag & drop an image from a website. If nothing appears, it means that the server hosting the image does not allow CORS, simply save the image on your computer to use it.
 
 -   `Open Local Image` which is the same as the drag & drop from your computer.
 
