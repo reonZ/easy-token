@@ -50,7 +50,7 @@ Files are uploaded to the server according to the settings in the `Directories` 
 
 A default path is provided for each one in the form of:
 
--   for `data` "world/[world-id]/images/[avatar or token]s/[actor-type]s".
+-   for `data` "worlds/[world-id]/images/[avatar or token]s/[actor-type]s".
 
 -   for `s3` "images/[avatar or token]s/[actor-type]s"
 

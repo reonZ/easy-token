@@ -30,7 +30,7 @@ Hooks.once('init', async () => {
  * @param {ApplicationHeaderButton[]} buttons
  */
 function getActorSheetHeaderButtons(sheet, buttons) {
-    // if (!game.user.can('FILES_UPLOAD')) return
+    if (!game.user.can('FILES_UPLOAD')) return
     buttons.unshift({
         label: 'Easy-Token',
         icon: 'fas fa-image',
