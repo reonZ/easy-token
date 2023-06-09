@@ -1,5 +1,7 @@
 # FoundryVTT Easy Token
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K6M2V13)
+
 Adds a fast and easy way to create, save and update a token image using the foundry's renderer engine.
 
 ![](./readme/editor.webp)
