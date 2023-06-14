@@ -96,7 +96,7 @@ export class Editor extends Application {
         const editorImage = this.editorImage
         if (!editorImage.interactive) return
 
-        const global = this.renderer.plugins.interaction.mouse.global
+        const global = this.renderer.plugins.interaction.pointer.global
         const local = editorImage.toLocal(global)
         const newLocal = multiply(divide(local, editorImage.scale), value)
         const newGlobal = editorImage.toGlobal(newLocal)
