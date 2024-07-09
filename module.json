@@ -1,7 +1,6 @@
 {
     "id": "easy-token",
     "title": "Easy Token",
-    "author": "Idle",
     "description": "Add an easy way to create and save a token image directly inside the foundry",
     "authors": [
         {
@@ -20,10 +19,9 @@
     ],
     "version": "1.1.0",
     "compatibility": {
-        "minimum": "11.301",
-        "verified": "11"
+        "minimum": "12.238",
+        "verified": "12.238"
     },
-    "manifestPlusVersion": "1.2.0",
     "url": "https://github.com/reonZ/easy-token",
     "readme": "https://github.com/reonZ/easy-token/blob/master/README.md",
     "manifest": "https://raw.githubusercontent.com/reonZ/easy-token/master/module.json",

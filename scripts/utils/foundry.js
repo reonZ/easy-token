@@ -1,18 +1,18 @@
-import MODULE_ID from './module.js'
+import MODULE_ID from "./module.js";
 
 /** @param {...string} path */
 export function templatePath(...path) {
-    return `modules/${MODULE_ID}/templates/${path.join('/')}`
+    return `modules/${MODULE_ID}/templates/${path.join("/")}`;
 }
 
 /** @param {...string} path */
 export function imagePath(...path) {
-    return `modules/${MODULE_ID}/images/${path.join('/')}`
+    return `modules/${MODULE_ID}/images/${path.join("/")}`;
 }
 
 /**@param {string} key*/
 export function getSetting(key) {
-    return game.settings.get(MODULE_ID, key)
+    return game.settings.get(MODULE_ID, key);
 }
 
 /**
@@ -21,12 +21,12 @@ export function getSetting(key) {
  * @param {T} value
  */
 export function setSetting(key, value) {
-    return game.settings.set(MODULE_ID, key, value)
+    return game.settings.set(MODULE_ID, key, value);
 }
 
 /** @param {string[]} path */
 function getSettingLocalizationPath(...path) {
-    return `${MODULE_ID}.settings.${path.join('.')}`
+    return `${MODULE_ID}.settings.${path.join(".")}`;
 }
 
 /**
@@ -37,14 +37,14 @@ function getSettingLocalizationPath(...path) {
  * options.config = false
  */
 export function registerSetting(options) {
-    const name = options.name
-    options.scope = options.scope ?? 'world'
-    options.config = options.config ?? false
+    const name = options.name;
+    options.scope = options.scope ?? "world";
+    options.config = options.config ?? false;
     if (options.config) {
-        options.name = getSettingLocalizationPath(name, 'name')
-        options.hint = getSettingLocalizationPath(name, 'hint')
+        options.name = getSettingLocalizationPath(name, "name");
+        options.hint = getSettingLocalizationPath(name, "hint");
     }
-    game.settings.register(MODULE_ID, name, options)
+    game.settings.register(MODULE_ID, name, options);
 }
 
 /**
@@ -54,13 +54,13 @@ export function registerSetting(options) {
  * options.icon = 'fas fa-cogs'
  */
 export function registerSettingMenu(options) {
-    const name = options.name
-    options.name = getSettingLocalizationPath(name, 'name')
-    options.label = getSettingLocalizationPath(name, 'label')
-    options.hint = getSettingLocalizationPath(name, 'hint')
-    options.restricted = options.restricted ?? true
-    options.icon = options.icon ?? 'fas fa-cogs'
-    game.settings.registerMenu(MODULE_ID, name, options)
+    const name = options.name;
+    options.name = getSettingLocalizationPath(name, "name");
+    options.label = getSettingLocalizationPath(name, "label");
+    options.hint = getSettingLocalizationPath(name, "hint");
+    options.restricted = options.restricted ?? true;
+    options.icon = options.icon ?? "fas fa-cogs";
+    game.settings.registerMenu(MODULE_ID, name, options);
 }
 
 /**
@@ -68,19 +68,19 @@ export function registerSettingMenu(options) {
  * @return {boolean}
  */
 export function bringAppToTop(id) {
-    const app = Object.values(ui.windows).find(x => x.id == id)
-    if (!app) return false
-    app.bringToTop()
-    return true
+    const app = Object.values(ui.windows).find((x) => x.id == id);
+    if (!app) return false;
+    app.bringToTop();
+    return true;
 }
 
 export function getActorsTypes() {
-    return game.system.documentTypes.Actor
+    return Object.keys(game.system.documentTypes.Actor);
 }
 
 /** @param {...string} path */
 export function worldPath(...path) {
-    return `worlds/${game.world.id}/${path.join('/')}`
+    return `worlds/${game.world.id}/${path.join("/")}`;
 }
 
 /**
@@ -88,9 +88,9 @@ export function worldPath(...path) {
  * @param {object} [data]
  */
 export function localize(key, data) {
-    key = `${MODULE_ID}.${key}`
-    if (data) return game.i18n.format(key, data)
-    return game.i18n.localize(key)
+    key = `${MODULE_ID}.${key}`;
+    if (data) return game.i18n.format(key, data);
+    return game.i18n.localize(key);
 }
 
 /**
@@ -98,13 +98,13 @@ export function localize(key, data) {
  * @returns {(key: string, data?: object) => string}
  */
 export function subLocalize(subKey) {
-    return (key, data) => localize(`${subKey}.${key}`, data)
+    return (key, data) => localize(`${subKey}.${key}`, data);
 }
 
 /** @param {'data' | 's3'} source */
 export function getBucket(source) {
-    if (source !== 's3') return undefined
-    return game.data.files.s3?.buckets[0]
+    if (source !== "s3") return undefined;
+    return game.data.files.s3?.buckets[0];
 }
 
 /**
@@ -114,11 +114,15 @@ export function getBucket(source) {
 export function getActorTokens(actor, linkedOnly = false) {
     return /** @type {TokenDocument[]} */ (
         game.scenes
-            .map(scene => scene.tokens.filter(token => token.actorId === actor.id && (!linkedOnly || token.actorLink)))
+            .map((scene) =>
+                scene.tokens.filter(
+                    (token) => token.actorId === actor.id && (!linkedOnly || token.actorLink)
+                )
+            )
             .flat()
-    )
+    );
 }
 
 export function useForgeVTT() {
-    return typeof ForgeVTT !== 'undefined' && ForgeVTT.usingTheForge
+    return typeof ForgeVTT !== "undefined" && ForgeVTT.usingTheForge;
 }
