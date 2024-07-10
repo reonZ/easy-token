@@ -17,7 +17,7 @@
             "path": "lang/en.json"
         }
     ],
-    "version": "1.1.0",
+    "version": "1.2.1",
     "compatibility": {
         "minimum": "12.238",
         "verified": "12.238"
@@ -25,7 +25,7 @@
     "url": "https://github.com/reonZ/easy-token",
     "readme": "https://github.com/reonZ/easy-token/blob/master/README.md",
     "manifest": "https://raw.githubusercontent.com/reonZ/easy-token/master/module.json",
-    "download": "https://github.com/reonZ/easy-token/releases/download/1.1.0/module.zip",
+    "download": "https://github.com/reonZ/easy-token/releases/download/1.2.1/module.zip",
     "changelog": "https://github.com/reonZ/easy-token/releases",
     "bugs": "https://github.com/reonZ/easy-token/issues"
 }
