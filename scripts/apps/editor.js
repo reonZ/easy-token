@@ -103,17 +103,17 @@ export class Editor extends Application {
         const editorImage = this.editorImage;
         if (!editorImage.interactive) return;
 
-        // const global = this.renderer.plugins.interaction.pointer.global;
-        // const local = editorImage.toLocal(global);
-        // const newLocal = multiply(divide(local, editorImage.scale), value);
-        // const newGlobal = editorImage.toGlobal(newLocal);
-        // const offset = substract(newGlobal, global);
+        const global = this.renderer.events.pointer.global;
+        const local = editorImage.toLocal(global);
+        const newLocal = multiply(divide(local, editorImage.scale), value);
+        const newGlobal = editorImage.toGlobal(newLocal);
+        const offset = substract(newGlobal, global);
 
-        // editorImage.x -= offset.x;
-        // editorImage.y -= offset.y;
+        editorImage.x -= offset.x;
+        editorImage.y -= offset.y;
 
-        // this.previewImage.x -= offset.x;
-        // this.previewImage.y -= offset.y;
+        this.previewImage.x -= offset.x;
+        this.previewImage.y -= offset.y;
 
         editorImage.scale.set(value);
         this.previewImage.scale.set(value);
