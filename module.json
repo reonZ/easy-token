@@ -5,7 +5,7 @@
     "authors": [
         {
             "name": "Idle",
-            "discord": "Idle#3251"
+            "discord": "idleatre"
         }
     ],
     "esmodules": ["scripts/main.js"],
@@ -20,7 +20,7 @@
     "version": "1.2.1",
     "compatibility": {
         "minimum": "12.238",
-        "verified": "12.238"
+        "verified": "12.331"
     },
     "url": "https://github.com/reonZ/easy-token",
     "readme": "https://github.com/reonZ/easy-token/blob/master/README.md",
