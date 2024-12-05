@@ -281,12 +281,15 @@ export class Editor extends Application {
         const actor = this.actor;
         if (actor.isToken) {
             const token = /** @type {TokenDocument} */ (actor.token);
-            token.update({ "texture.src": img });
+            token.update({ "texture.src": img, "ring.enabled": false });
         } else {
-            actor.update({ "prototypeToken.texture.src": img });
+            actor.update({
+                "prototypeToken.texture.src": img,
+                "prototypeToken.ring.enabled": false,
+            });
             const tokens = getActorTokens(actor, true);
             for (const token of tokens) {
-                token.update({ "texture.src": img });
+                token.update({ "texture.src": img, "ring.enabled": false });
             }
         }
         this.#savedNotification("token-saved", path);
