@@ -1,1 +1,0 @@
-export default 'easy-token'

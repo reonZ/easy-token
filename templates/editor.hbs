@@ -1,0 +1,46 @@
+{{#if isToken}}
+    <div class="warning">{{@root.i18n 'warning'}}</div>
+{{/if}}
+
+<div class="menu">
+    <div class="popout">
+        <select name="popout">
+            <option value="disabled">{{@root.i18n 'popout.disabled'}}</option>
+            <option value="top">{{@root.i18n 'popout.top'}}</option>
+            <option value="bottom">{{@root.i18n 'popout.bottom'}}</option>
+            <option value="both">{{@root.i18n 'popout.both'}}</option>
+        </select>
+        <input type="range" name="popout-range" min="0" max="100" value="{{popoutRange}}" {{disabled}}>
+    </div>
+    <div class="color-pickers">
+        <div class="color-picker">
+            <input type="color" name="border" value="#ffffff" />
+            <label>{{@root.i18n 'border'}}</label>
+        </div>
+        <div class="color-picker">
+            <input type="color" name="background" value="#ffffff" />
+            <label>{{@root.i18n 'background'}}</label>
+        </div>
+    </div>
+    <button class="button" data-action="load-avatar">
+        {{@root.i18n 'load-avatar'}}
+    </button>
+    <button class="button" data-action="open-local">
+        {{@root.i18n 'open-local'}}
+        <input type="file" accept="image/*" />
+    </button>
+    <button class="button" data-action="open-server" {{disabled (not canBrowse)}}>
+        {{@root.i18n 'open-server'}}
+    </button>
+    <button class="button" data-action="save-avatar" disabled>
+        {{@root.i18n 'save-avatar'}}
+    </button>
+    <button class="button" data-action="save-token" disabled>
+        {{@root.i18n 'save-token'}}
+    </button>
+    <button class="button" data-action="save-all" disabled>
+        {{@root.i18n 'save-all'}}
+    </button>
+</div>
+
+<div class="preview"></div>

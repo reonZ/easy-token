@@ -1,0 +1,26 @@
+{
+    "name": "easy-token",
+    "scripts": {
+        "scss": "sass --style=compressed --quiet --no-charset styles/%npm_package_name%.scss:styles/%npm_package_name%.css",
+        "build": "esbuild src/main.ts --bundle --keep-names --minify --sourcemap --outdir=scripts",
+        "dev": "esbuild src/main.ts --bundle --keep-names --watch --sourcemap --outdir=scripts"
+    },
+    "author": "Idle",
+    "homepage": "https://github.com/reonZ/easy-token#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/reonZ/easy-token.git"
+    },
+    "bugs": {
+        "url": "https://github.com/reonZ/easy-token/issues"
+    },
+    "devDependencies": {
+        "esbuild": "^0.20.1",
+        "foundry-pf2e": "github:7H3LaughingMan/foundry-pf2e",
+        "sass": "^1.97.1",
+        "typescript": "^5.9.3"
+    },
+    "dependencies": {
+        "foundry-helpers": "file:../../../../dev/foundry-helpers"
+    }
+}
