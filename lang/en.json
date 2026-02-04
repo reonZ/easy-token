@@ -10,15 +10,18 @@
             }
         },
         "directories": {
+            "avatar": "Avatar",
+            "cancel": "Cancel",
+            "save": "Save",
             "source": {
                 "label": "Source",
                 "hint": "The data source to which the file will be uploaded."
             },
-            "avatar": "Avatar",
             "title": "Actor Types Directories",
             "token": "Token"
         },
         "editor": {
+            "avatar-saved": "Token image was successfully saved '{path}'",
             "background": "Background",
             "border": "Border",
             "load-avatar": "Load Avatar Image",
@@ -33,6 +36,7 @@
             "save-all": "Save All & Close",
             "save-avatar": "Save Avatar Image",
             "save-token": "Save Token Image",
+            "token-saved": "Avatar image was successfully saved '{path}'",
             "warning": "This token is not linked to any actor, changes will only be applied to this particular Token."
         },
         "label": "Easy-Token"

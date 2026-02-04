@@ -1,33 +1,40 @@
-<form autocomplete="off" spellcheck="false">
-    {{#if hasS3}}
-    <label class="source">{{@root.i18n 'source.label'}}</label>
-    <select name="source" value={{source}}>
-        <option value="data">data</option>
-        <option value="s3">s3</option>
-    </select>
-    <span>{{@root.i18n 'source.hint'}}</span>
-    <hr />
-    {{/if}}
-    <div class="list">
-        {{#each entries as |entry|}}
-        <h4>{{entry.type}}</h4>
-        <label>
-            <span>{{@root.i18n 'avatar'}}</span>
-            <input
-                type="text"
-                name="{{entry.type}}.avatar"
-                placeholder="{{entry.avatar.placeholder}}"
-                value="{{entry.avatar.value}}"
-            />
-        </label>
-        <label>
-            <span>{{@root.i18n 'token'}}</span>
-            <input type="text" name="{{entry.type}}.token" placeholder="{{entry.token.placeholder}}" value="{{entry.token.value}}" />
-        </label>
-        {{/each}}
-    </div>
-    <div class="buttons">
-        <button><i class="fas fa-save"></i>Save</button>
-        <button class="cancel"><i class="fas fa-multiply"></i>Cancel</button>
-    </div>
+<form class="standard-form" autocomplete="off" spellcheck="false">
+    <fieldset {{#unless hasS3}}class="hidden"{{/unless}}>
+        <legend>{{@root.i18n 'source.label'}}</legend>
+        <div class="form-group stacked character">
+            <div class="form-fields">
+                <select name="source">
+                    {{selectOptions sources selected=source }}
+                </select>
+            </div>
+            <p class="hint">{{@root.i18n 'source.hint'}}</p>
+        </div>
+    </fieldset>
+    {{#each entries as |entry|}}
+    <fieldset>
+        <legend>{{localize entry.label}}</legend>
+        <div class="form-group">
+            <label>{{@root.i18n 'avatar'}}</label>
+            <div class="form-fields">
+                <input type="text" name="{{entry.type}}.avatar"  value="{{entry.avatar.value}}" placeholder="{{entry.avatar.placeholder}}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>{{@root.i18n 'token'}}</label>
+            <div class="form-fields">
+                <input type="text" name="{{entry.type}}.token"  value="{{entry.token.value}}" placeholder="{{entry.token.placeholder}}">
+            </div>
+        </div>
+    </fieldset>
+    {{/each}}
+    <footer class="form-footer">
+        <button type="button" data-action="save">
+            <i class="fas fa-save"></i>
+            <span>{{@root.i18n 'save'}}</span>
+        </button>
+        <button type="button" data-action="cancel">
+            <i class="fas fa-multiply"></i>
+            <span>{{@root.i18n 'cancel'}}</span>
+        </button>
+    </footer>
 </form>

@@ -1,5 +1,16 @@
 import { EditorApplication, PopoutType } from "application";
-import { addListener, addListenerAll, localize, R, render, setStyleProperty, SYSTEM } from "foundry-helpers";
+import { DirectorySource, getFilePath, PathCategory } from "directories";
+import {
+    addListener,
+    addListenerAll,
+    getSetting,
+    localize,
+    MODULE,
+    notify,
+    R,
+    render,
+    setStyleProperty,
+} from "foundry-helpers";
 import {
     ApplicationConfiguration,
     ApplicationRenderContext,
@@ -106,71 +117,79 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         }
     }
 
-    getDefaultFilePath(source: "data" | "s3", category: "token" | "avatar") {
-        const path = `images/${category}s/${this.actor.type}s`;
-        return source === "s3" ? path : `worlds/${game.world.id}/${path}`;
-    }
-
-    getFilePath(source: "data" | "s3", category: "token" | "avatar"): string {
-        const paths = getSetting("paths");
-        return (
-            (foundry.utils.getProperty(paths, `${this.actor.type}.${category}`) as string | undefined) ??
-            this.getDefaultFilePath(source, category)
-        );
-    }
-
-    #getFileName(category: "token" | "avatar"): string {
-        const name = SYSTEM.sluggify(this.actor.token?.name ?? this.actor.name);
+    #getFileName(category: PathCategory): string {
+        const name = (this.actor.token?.name ?? this.actor.name).slugify({ strict: true });
         const fullName = this.actor.token ? `${name}.${this.actor.token.id}` : name;
         return `${fullName}.${category}.webp`;
     }
 
     async #saveImage(
-        category: "token" | "avatar",
-        source: "data" | "s3" = getSetting("source"),
+        category: PathCategory,
+        source: DirectorySource = getSetting("source"),
     ): Promise<string | undefined> {
         const base64 = await this.#application.getTokenBase64();
         const fileName = this.#getFileName(category);
-        const filePath = this.getFilePath(source, category);
+        const filePath = getFilePath(this.actor.type, source, category);
         const blob = await fetch(base64).then((result) => result.blob());
         // @ts-ignore
         const bucket = source === "s3" ? game.data.files.s3?.buckets[0] : undefined;
+        const FilePicker = foundry.applications.apps.FilePicker.implementation;
+
+        const dirs = filePath.split("/");
+        const cursors = [];
+
+        for (const dir of dirs) {
+            try {
+                cursors.push(dir);
+                const path = cursors.join("/");
+                await FilePicker.createDirectory(source, path, { bucket });
+            } catch (error: any) {}
+        }
 
         try {
             const file = new File([blob], fileName, { type: "image/webp" });
-            const response = await foundry.applications.apps.FilePicker.implementation.upload(
-                source,
-                filePath,
-                file,
-                { bucket },
-                { notify: false },
-            );
+            const response = await FilePicker.upload(source, filePath, file, { bucket }, { notify: false });
 
-            return R.isObjectType(response) && response.status === "success" ? response.path : undefined;
-        } catch (error) {}
+            const path = R.isObjectType(response) && response.status === "success" ? response.path : undefined;
+            return path ? `${path}?${Date.now()}` : undefined;
+        } catch (error: any) {
+            MODULE.error("an error occured while saving an image", error);
+        }
     }
 
-    async #saveToken(source?: "data" | "s3") {
-        const saved = await this.#saveImage("token", source);
-        if (!saved) return;
+    async #saveToken(source?: DirectorySource) {
+        const path = await this.#saveImage("token", source);
+        if (!path) return;
 
-        // const img = cacheBusterImg(path);
         const actor = this.actor;
         if (actor.token) {
-            actor.token.update({ "texture.src": img, "ring.enabled": false });
-            //     const token = /** @type {TokenDocument} */ (actor.token);
-            //     token.update({ "texture.src": img, "ring.enabled": false });
+            await actor.token.update({ "texture.src": path, "ring.enabled": false });
         } else {
-            //     actor.update({
-            //         "prototypeToken.texture.src": img,
-            //         "prototypeToken.ring.enabled": false,
-            //     });
-            //     const tokens = getActorTokens(actor, true);
-            //     for (const token of tokens) {
-            //         token.update({ "texture.src": img, "ring.enabled": false });
-            //     }
+            await actor.update({
+                "prototypeToken.texture.src": path,
+                "prototypeToken.ring.enabled": false,
+            });
+
+            const updatePromises = R.pipe(
+                game.scenes.contents,
+                R.map((scene) => {
+                    const updates = R.pipe(
+                        scene.tokens.contents,
+                        R.filter((token) => token.actorId === actor.id && token.actorLink),
+                        R.map((token) => {
+                            return { _id: token.id, "texture.src": path, "ring.enabled": false };
+                        }),
+                    );
+
+                    return scene.updateEmbeddedDocuments("Token", updates);
+                }),
+                R.flat(),
+            );
+
+            await Promise.all(updatePromises);
         }
-        // this.#savedNotification("token-saved", path);
+
+        notify.info("editor.token-saved", { path });
     }
 
     #unlockButtons() {
