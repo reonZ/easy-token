@@ -10,6 +10,16 @@
             position: absolute;
         }
 
+        .warning {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            color: #bb0000;
+            text-shadow: 0px 0px 4px white;
+            width: calc(100% - var(--preview-size));
+            text-align: center;
+        }
+
         .menu {
             position: absolute;
             pointer-events: none;

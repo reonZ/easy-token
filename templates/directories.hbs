@@ -1,0 +1,33 @@
+<form autocomplete="off" spellcheck="false">
+    {{#if hasS3}}
+    <label class="source">{{@root.i18n 'source.label'}}</label>
+    <select name="source" value={{source}}>
+        <option value="data">data</option>
+        <option value="s3">s3</option>
+    </select>
+    <span>{{@root.i18n 'source.hint'}}</span>
+    <hr />
+    {{/if}}
+    <div class="list">
+        {{#each entries as |entry|}}
+        <h4>{{entry.type}}</h4>
+        <label>
+            <span>{{@root.i18n 'avatar'}}</span>
+            <input
+                type="text"
+                name="{{entry.type}}.avatar"
+                placeholder="{{entry.avatar.placeholder}}"
+                value="{{entry.avatar.value}}"
+            />
+        </label>
+        <label>
+            <span>{{@root.i18n 'token'}}</span>
+            <input type="text" name="{{entry.type}}.token" placeholder="{{entry.token.placeholder}}" value="{{entry.token.value}}" />
+        </label>
+        {{/each}}
+    </div>
+    <div class="buttons">
+        <button><i class="fas fa-save"></i>Save</button>
+        <button class="cancel"><i class="fas fa-multiply"></i>Cancel</button>
+    </div>
+</form>

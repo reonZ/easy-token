@@ -2485,6 +2485,70 @@
   }
   __name(drawPolygonMask, "drawPolygonMask");
 
+  // ../../../../dev/foundry-helpers/dist/settings.js
+  function settingPath(...path) {
+    return MODULE.path("settings", ...path);
+  }
+  __name(settingPath, "settingPath");
+  function registerSetting(key, options) {
+    const isGM = userIsGM();
+    if (options.gmOnly && !isGM || options.playerOnly && isGM)
+      return;
+    if ("choices" in options && Array.isArray(options.choices)) {
+      options.choices = dist_exports.fromKeys(options.choices, (choice) => settingPath(key, "choices", choice));
+    }
+    options.name ??= settingPath(key, "name");
+    options.hint ??= settingPath(key, "hint");
+    options.config ??= true;
+    if (options.scope === "user" && !options.broadcast && options.onChange) {
+      const _onChange = options.onChange;
+      options.onChange = (value, operation, userId) => {
+        if (userId !== game.userId)
+          return;
+        _onChange(value, operation, userId);
+      };
+    }
+    game.settings.register(MODULE.id, key, options);
+  }
+  __name(registerSetting, "registerSetting");
+  function registerSettingMenu(key, options) {
+    options.name ??= settingPath("menus", key, "name");
+    options.label ??= settingPath("menus", key, "label");
+    options.hint ??= settingPath("menus", key, "hint");
+    options.icon ??= "fas fa-cogs";
+    game.settings.registerMenu(MODULE.id, key, options);
+  }
+  __name(registerSettingMenu, "registerSettingMenu");
+
+  // ../../../../dev/foundry-helpers/dist/user.js
+  function getCurrentUser() {
+    return game.user ?? game.data.users.find((x) => x._id === game.userId);
+  }
+  __name(getCurrentUser, "getCurrentUser");
+  function userIsGM(user = getCurrentUser()) {
+    return user && user.role >= CONST.USER_ROLES.ASSISTANT;
+  }
+  __name(userIsGM, "userIsGM");
+
+  // src/directories.ts
+  var DirectoriesMenu = class extends foundry.applications.api.ApplicationV2 {
+    static {
+      __name(this, "DirectoriesMenu");
+    }
+    static DEFAULT_OPTIONS = {
+      id: "easy-token-directories-menu"
+    };
+    get title() {
+      return localize("directories.title");
+    }
+    _renderHTML(context, options) {
+      return render("directories", context);
+    }
+    _replaceHTML(result, content, options) {
+      content.innerHTML = result;
+    }
+  };
+
   // src/application.ts
   var EditorApplication = class extends PIXI.Application {
     static {
@@ -2570,6 +2634,10 @@
       this.#hitArea.width = this.screen.width;
       this.#hitArea.height = this.screen.height;
       this.stage.on("pointerdown", this.#onDragLeftStart, this);
+    }
+    async getTokenBase64() {
+      const rect = this.#popout.value === "disabled" ? void 0 : new PIXI.Rectangle(this.#preview.x, this.#preview.y, this.previewSize, this.previewSize);
+      return await this.renderer.extract.base64(this.#preview, "image/webp", void 0, rect);
     }
     #onDragLeftStart(event) {
       const editorCursor = event.getLocalPosition(this.#editor);
@@ -2788,8 +2856,50 @@
           return;
         }
         case "save-token": {
-          return;
+          return this.#saveToken();
         }
+      }
+    }
+    getDefaultFilePath(source, category) {
+      const path = `images/${category}s/${this.actor.type}s`;
+      return source === "s3" ? path : `worlds/${game.world.id}/${path}`;
+    }
+    getFilePath(source, category) {
+      const paths = getSetting("paths");
+      return foundry.utils.getProperty(paths, `${this.actor.type}.${category}`) ?? this.getDefaultFilePath(source, category);
+    }
+    #getFileName(category) {
+      const name = SYSTEM.sluggify(this.actor.token?.name ?? this.actor.name);
+      const fullName = this.actor.token ? `${name}.${this.actor.token.id}` : name;
+      return `${fullName}.${category}.webp`;
+    }
+    async #saveImage(category, source = getSetting("source")) {
+      const base64 = await this.#application.getTokenBase64();
+      const fileName = this.#getFileName(category);
+      const filePath = this.getFilePath(source, category);
+      const blob = await fetch(base64).then((result) => result.blob());
+      const bucket = source === "s3" ? game.data.files.s3?.buckets[0] : void 0;
+      try {
+        const file = new File([blob], fileName, { type: "image/webp" });
+        const response = await foundry.applications.apps.FilePicker.implementation.upload(
+          source,
+          filePath,
+          file,
+          { bucket },
+          { notify: false }
+        );
+        return dist_exports.isObjectType(response) && response.status === "success" ? response.path : void 0;
+      } catch (error) {
+      }
+    }
+    async #saveToken(source) {
+      const saved = await this.#saveImage("token", source);
+      if (!saved)
+        return;
+      const actor = this.actor;
+      if (actor.token) {
+        actor.token.update({ "texture.src": img, "ring.enabled": false });
+      } else {
       }
     }
     #unlockButtons() {
@@ -2828,6 +2938,25 @@
 
   // src/main.ts
   MODULE.register("easy-token");
+  Hooks.once("init", () => {
+    registerSetting("source", {
+      type: String,
+      default: "data",
+      scope: "world",
+      config: false
+    });
+    registerSetting("paths", {
+      type: Object,
+      default: {},
+      scope: "world",
+      config: false
+    });
+    registerSettingMenu("directories", {
+      restricted: true,
+      type: DirectoriesMenu,
+      icon: "fas fa-folder-open"
+    });
+  });
   Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
     if (!game.user.can("FILES_UPLOAD"))
       return;

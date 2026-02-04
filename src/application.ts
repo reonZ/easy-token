@@ -114,6 +114,15 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         this.stage.on("pointerdown", this.#onDragLeftStart, this);
     }
 
+    async getTokenBase64(): Promise<string> {
+        const rect =
+            this.#popout.value === "disabled"
+                ? undefined
+                : new PIXI.Rectangle(this.#preview.x, this.#preview.y, this.previewSize, this.previewSize);
+
+        return await this.renderer.extract.base64(this.#preview, "image/webp", undefined, rect);
+    }
+
     #onDragLeftStart(event: PIXI.FederatedPointerEvent) {
         const editorCursor = event.getLocalPosition(this.#editor);
         const previewCursor = event.getLocalPosition(this.#preview);

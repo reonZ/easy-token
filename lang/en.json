@@ -1,5 +1,23 @@
 {
     "easy-token": {
+        "settings": {
+            "menus": {
+                "directories": {
+                    "name": "Directories",
+                    "label": "Setup Directories",
+                    "hint": "Upload directories for the different actor types."
+                }
+            }
+        },
+        "directories": {
+            "source": {
+                "label": "Source",
+                "hint": "The data source to which the file will be uploaded."
+            },
+            "avatar": "Avatar",
+            "title": "Actor Types Directories",
+            "token": "Token"
+        },
         "editor": {
             "background": "Background",
             "border": "Border",

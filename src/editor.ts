@@ -1,5 +1,5 @@
 import { EditorApplication, PopoutType } from "application";
-import { addListener, addListenerAll, htmlQuery, localize, R, render, setStyleProperty } from "foundry-helpers";
+import { addListener, addListenerAll, localize, R, render, setStyleProperty, SYSTEM } from "foundry-helpers";
 import {
     ApplicationConfiguration,
     ApplicationRenderContext,
@@ -75,7 +75,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         this.#activateListeners(content);
     }
 
-    protected _onClickAction(_event: PointerEvent, target: HTMLElement): void {
+    protected _onClickAction(_event: PointerEvent, target: HTMLElement) {
         const action = target.dataset.action as EventAction;
 
         switch (action) {
@@ -101,9 +101,76 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             }
 
             case "save-token": {
-                return;
+                return this.#saveToken();
             }
         }
+    }
+
+    getDefaultFilePath(source: "data" | "s3", category: "token" | "avatar") {
+        const path = `images/${category}s/${this.actor.type}s`;
+        return source === "s3" ? path : `worlds/${game.world.id}/${path}`;
+    }
+
+    getFilePath(source: "data" | "s3", category: "token" | "avatar"): string {
+        const paths = getSetting("paths");
+        return (
+            (foundry.utils.getProperty(paths, `${this.actor.type}.${category}`) as string | undefined) ??
+            this.getDefaultFilePath(source, category)
+        );
+    }
+
+    #getFileName(category: "token" | "avatar"): string {
+        const name = SYSTEM.sluggify(this.actor.token?.name ?? this.actor.name);
+        const fullName = this.actor.token ? `${name}.${this.actor.token.id}` : name;
+        return `${fullName}.${category}.webp`;
+    }
+
+    async #saveImage(
+        category: "token" | "avatar",
+        source: "data" | "s3" = getSetting("source"),
+    ): Promise<string | undefined> {
+        const base64 = await this.#application.getTokenBase64();
+        const fileName = this.#getFileName(category);
+        const filePath = this.getFilePath(source, category);
+        const blob = await fetch(base64).then((result) => result.blob());
+        // @ts-ignore
+        const bucket = source === "s3" ? game.data.files.s3?.buckets[0] : undefined;
+
+        try {
+            const file = new File([blob], fileName, { type: "image/webp" });
+            const response = await foundry.applications.apps.FilePicker.implementation.upload(
+                source,
+                filePath,
+                file,
+                { bucket },
+                { notify: false },
+            );
+
+            return R.isObjectType(response) && response.status === "success" ? response.path : undefined;
+        } catch (error) {}
+    }
+
+    async #saveToken(source?: "data" | "s3") {
+        const saved = await this.#saveImage("token", source);
+        if (!saved) return;
+
+        // const img = cacheBusterImg(path);
+        const actor = this.actor;
+        if (actor.token) {
+            actor.token.update({ "texture.src": img, "ring.enabled": false });
+            //     const token = /** @type {TokenDocument} */ (actor.token);
+            //     token.update({ "texture.src": img, "ring.enabled": false });
+        } else {
+            //     actor.update({
+            //         "prototypeToken.texture.src": img,
+            //         "prototypeToken.ring.enabled": false,
+            //     });
+            //     const tokens = getActorTokens(actor, true);
+            //     for (const token of tokens) {
+            //         token.update({ "texture.src": img, "ring.enabled": false });
+            //     }
+        }
+        // this.#savedNotification("token-saved", path);
     }
 
     #unlockButtons() {
