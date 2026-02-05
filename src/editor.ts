@@ -60,8 +60,8 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
     protected async _prepareContext(_options: fa.ApplicationRenderOptions): Promise<EditorContext> {
         return {
             canBrowse: game.user.can("FILES_BROWSE"),
-            isToken: this.actor.isToken,
             popoutRange: this.#application.defaultPopoutRange,
+            warning: this.actor.isToken ? "token" : !this.actor.prototypeToken.actorLink ? "actor" : undefined,
         };
     }
 
@@ -366,6 +366,6 @@ type EventAction =
 
 type EditorContext = fa.ApplicationRenderContext & {
     canBrowse: boolean;
-    isToken: boolean;
     popoutRange: number;
+    warning: string | undefined;
 };

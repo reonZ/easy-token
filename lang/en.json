@@ -44,7 +44,10 @@
                 "avatar": "Avatar image was successfully saved '{path}'",
                 "token": "Token image was successfully saved '{path}'"
             },
-            "warning": "This token is not linked to any actor, changes will only be applied to this particular Token."
+            "warning": {
+                "actor": "This actor is not linked, already placed tokens in your scenes will not be updated.",
+                "token": "This token is not linked to any actor, changes will only be applied to this particular Token."
+            }
         },
         "label": "Easy-Token"
     }
