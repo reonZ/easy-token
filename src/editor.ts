@@ -92,6 +92,18 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         const action = target.dataset.action as EventAction;
 
         switch (action) {
+            case "download": {
+                const { base64 } = await this.#application.getTokenBase64();
+                const blob = await fetch(base64).then((result) => result.blob());
+
+                const link = document.createElement("a");
+                link.download = this.#getFileName("token");
+                link.href = window.URL.createObjectURL(blob);
+                link.click();
+
+                return;
+            }
+
             case "load-avatar": {
                 this.#unlockButtons();
                 return this.#application.setAvatar(this.actor.img);
@@ -343,6 +355,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 }
 
 type EventAction =
+    | "download"
     | "load-avatar"
     | "open-local"
     | "open-server"

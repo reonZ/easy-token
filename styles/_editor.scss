@@ -98,18 +98,27 @@
             border-right-color: transparent;
             border-bottom-color: transparent;
 
+            .controls,
             .ring-cycle {
                 position: absolute;
                 bottom: 0;
-                right: 0.3rem;
-                display: flex;
-                align-items: center;
-                gap: 0.3rem;
                 font-size: 1.8em;
                 opacity: 0.2;
             }
 
+            .controls {
+                left: 0.3rem;
+            }
+
+            .ring-cycle {
+                right: 0.3rem;
+                display: flex;
+                align-items: center;
+                gap: 0.3rem;
+            }
+
             &:hover {
+                .controls,
                 .ring-cycle {
                     opacity: 1;
                 }

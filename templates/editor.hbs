@@ -43,13 +43,18 @@
     </button>
 </div>
 
-<div class="preview">
+<div class="preview" data-tooltip-direction="UP">
     <div class="ring-cycle">
-        <a data-action="ring-cycle" data-direction="-1">
+        <a data-action="ring-cycle" data-direction="-1" {{{@root.i18n.tooltip 'ring.previous'}}}>
             <i class="fa-solid fa-caret-left"></i>
         </a>
-        <a data-action="ring-cycle" data-direction="1">
+        <a data-action="ring-cycle" data-direction="1" {{{@root.i18n.tooltip 'ring.next'}}}>
             <i class="fa-solid fa-caret-right"></i>
+        </a>
+    </div>
+    <div class="controls">
+        <a data-action="download" {{{@root.i18n.tooltip 'download'}}}>
+            <i class="fa-solid fa-download"></i>
         </a>
     </div>
 </div>

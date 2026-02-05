@@ -23,6 +23,7 @@
         "editor": {
             "background": "Background",
             "border": "Border",
+            "download": "Download Token Image",
             "load-avatar": "Load Avatar Image",
             "open-local": "Open Local Image",
             "open-server": "Open Server Image",
@@ -31,6 +32,10 @@
                 "bottom": "Bottom Popout",
                 "disabled": "No Popout",
                 "top": "Top Popout"
+            },
+            "ring": {
+                "next": "Next Ring",
+                "previous": "Previous Ring"
             },
             "save-all": "Save All & Close",
             "save-avatar": "Save Avatar Image",
