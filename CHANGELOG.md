@@ -1,6 +1,6 @@
 # 2.0.0
 
-- this release is a complet rewrite of the module
+- this release is a complete rewrite of the module
 - the module is now compatible with `ApplicationV2` actor sheets
 - made the mouse wheel zoom smoother, trying to prevent big jumps at smaller zoom and really small increments at higher zoom
 - add new `Popout` feature
