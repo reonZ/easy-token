@@ -13,7 +13,7 @@ import {
 } from "foundry-helpers";
 import { Point } from "foundry-pf2e/foundry/common/_types.mjs";
 
-const RINGS = ["token-001", "token-002", "token-003"] as const;
+const RINGS = ["token-001", "token-002", "token-003", "token-dynamic"] as const;
 
 export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     #avatar!: PIXI.Sprite;
@@ -81,6 +81,14 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         return MODULE.imagePath("drop");
     }
 
+    get isPopoutToken(): boolean {
+        return this.#popout.value !== "disabled";
+    }
+
+    get isDynamicToken(): boolean {
+        return this.#rings.isLast;
+    }
+
     setAvatar(image: string, skipPreview: boolean = false) {
         const size = this.previewSize;
         const texture = PIXI.Texture.from(image);
@@ -132,11 +140,15 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
         this.#editorBorder.texture = texture;
         this.#previewBorder.texture = texture;
+
+        this.#setPreview();
+        this.#setPreviewMask();
     }
 
     draw() {
         this.#createEditor();
         this.#createPreview();
+        this.#setPreview();
 
         this.setAvatar(this.dropImage, true);
 
@@ -151,16 +163,25 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         return this.renderer.extract.base64(this.#avatar, "image/webp");
     }
 
-    async getTokenBase64(): Promise<{ base64: string; scale: number }> {
-        const isPopout = this.#popout.value !== "disabled";
-        const rect = isPopout
-            ? new PIXI.Rectangle(this.#preview.x, this.#preview.y, this.previewSize, this.previewSize)
-            : undefined;
+    async getTokenBase64(): Promise<{ base64: string; isDynamic: boolean; scale: number }> {
+        const isDynamic = this.isDynamicToken;
+        const rect = this.#getTokenRect();
 
         return {
             base64: await this.renderer.extract.base64(this.#preview, "image/webp", undefined, rect),
-            scale: isPopout ? 1.2 : 1, // magic number, we know the border/preview ratio
+            isDynamic,
+            scale: isDynamic ? 1 : this.isPopoutToken ? 1.2 : 1, // magic number, we know the border/preview ratio
         };
+    }
+
+    #getTokenRect() {
+        if (this.isPopoutToken) {
+            return new PIXI.Rectangle(this.#preview.x, this.#preview.y, this.previewSize, this.previewSize);
+        }
+
+        const { x, y } = this.#previewBorder.getGlobalPosition();
+        const { width, height } = this.#previewBorder;
+        return new PIXI.Rectangle(x - width / 2, y - height / 2, this.previewTokenSize, this.previewTokenSize);
     }
 
     #onMouseWheel(event: PIXI.FederatedWheelEvent) {
@@ -227,6 +248,16 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         this.stage.off("pointerupoutside", this.#terminateDrag);
     }
 
+    #setPreview() {
+        const alpha = this.isDynamicToken ? 0 : 1;
+        this.#background.alpha = alpha;
+        this.#previewBorder.alpha = alpha;
+
+        const scale = this.isDynamicToken ? 0.66 / 0.85 : 1;
+        this.#editorBorder.scale.set(scale);
+        this.#previewBorder.scale.set(scale);
+    }
+
     #setPreviewMask() {
         for (const mask of [this.#topMask, this.#bottomMask]) {
             this.#preview.removeChild(mask);
@@ -234,7 +265,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         }
 
         const size = this.previewSize;
-        const tokenSize = this.previewTokenSize;
+        const tokenSize = this.previewTokenSize * (this.isDynamicToken ? 0.66 / 0.85 : 1);
         const halfSize = size / 2;
         const tokenHalfSize = tokenSize / 2;
 
@@ -340,10 +371,10 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
             preview.addChild(sprite);
         }
 
-        for (const sprite of [background, border]) {
-            sprite.width = tokenSize;
-            sprite.height = tokenSize;
-        }
+        // for (const sprite of [background, border]) {
+        //     sprite.width = tokenSize;
+        //     sprite.height = tokenSize;
+        // }
 
         preview.sortableChildren = true;
 

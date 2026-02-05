@@ -216,6 +216,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         token: TokenDocument | foundry.data.PrototypeToken<Actor>,
         path: string,
         baseScale: number,
+        isDynamic: boolean,
         isPF2e: boolean,
     ) {
         const isPopout = baseScale !== 1;
@@ -231,23 +232,30 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         let updates: Record<string, any> = {
             "texture.scaleX": scaleX,
             "texture.scaleY": scaleY,
-            "texture.src": path,
-            "ring.enabled": false,
+            "ring.enabled": isDynamic,
         };
+
+        if (isDynamic) {
+            updates["ring.enabled"] = true;
+            updates["ring.subject.texture"] = path;
+        } else {
+            updates["texture.src"] = path;
+        }
 
         if (token instanceof foundry.data.PrototypeToken) {
             updates = R.mapKeys(updates, (key) => `prototypeToken.${key}`);
         }
 
-        if (isPopout && isPF2e) {
-            updates[`flags.${game.system.id}.autoscale`] = false;
+        if (isPF2e) {
+            updates[`flags.${game.system.id}.autoscale`] = isDynamic || !isPopout;
         }
 
         return updates;
     }
 
     async #saveToken(source?: DirectorySource) {
-        const { base64, scale } = await this.#application.getTokenBase64();
+        const { base64, isDynamic, scale } = await this.#application.getTokenBase64();
+        console.log(isDynamic, scale);
         const path = await this.#saveImage("token", base64, source);
         if (!path) return;
 
@@ -255,10 +263,10 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         const isPF2e = R.isIncludedIn(game.system.id, ["pf2e", "sf2e"]);
 
         if (actor.token) {
-            const updates = this.#getTokenUpdates(actor.token, path, scale, isPF2e);
+            const updates = this.#getTokenUpdates(actor.token, path, scale, isDynamic, isPF2e);
             await actor.token.update(updates);
         } else {
-            const actorUpdates = this.#getTokenUpdates(actor.prototypeToken, path, scale, isPF2e);
+            const actorUpdates = this.#getTokenUpdates(actor.prototypeToken, path, scale, isDynamic, isPF2e);
             await actor.update(actorUpdates);
 
             const updatePromises = R.pipe(
@@ -268,7 +276,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
                         scene.tokens.contents,
                         R.filter((token) => token.actorId === actor.id && token.actorLink),
                         R.map((token) => {
-                            const updates = this.#getTokenUpdates(token, path, scale, isPF2e);
+                            const updates = this.#getTokenUpdates(token, path, scale, isDynamic, isPF2e);
                             return { ...updates, _id: token.id };
                         }),
                     );
