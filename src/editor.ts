@@ -4,6 +4,7 @@ import {
     addListener,
     addListenerAll,
     getSetting,
+    htmlQuery,
     localize,
     MODULE,
     notify,
@@ -11,6 +12,7 @@ import {
     render,
     setStyleProperty,
 } from "foundry-helpers";
+import { ActorPF2e } from "foundry-pf2e";
 import {
     ApplicationConfiguration,
     ApplicationRenderContext,
@@ -86,7 +88,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         this.#activateListeners(content);
     }
 
-    protected _onClickAction(_event: PointerEvent, target: HTMLElement) {
+    protected async _onClickAction(_event: PointerEvent, target: HTMLElement) {
         const action = target.dataset.action as EventAction;
 
         switch (action) {
@@ -96,25 +98,49 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             }
 
             case "open-local": {
+                const input = htmlQuery(target, "input");
+
+                if (input) {
+                    input.value = "";
+                    input.click();
+                }
+
                 return;
             }
 
             case "open-server": {
-                return;
+                return this.#openBrowser();
             }
 
             case "save-all": {
-                return;
+                const source = getSetting<DirectorySource>("source");
+                await this.#saveAvatar(source);
+                await this.#saveToken(source);
+                return this.close();
             }
 
             case "save-avatar": {
-                return;
+                return this.#saveAvatar();
             }
 
             case "save-token": {
                 return this.#saveToken();
             }
         }
+    }
+
+    async #openBrowser() {
+        const picker = new CONFIG.ux.FilePicker({
+            allowUpload: true,
+            current: this.actor.img,
+            callback: (path: string) => {
+                this.#unlockButtons();
+                this.#application.setAvatar(path);
+            },
+            type: "image",
+        });
+
+        return picker.browse();
     }
 
     #getFileName(category: PathCategory): string {
@@ -125,15 +151,14 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
     async #saveImage(
         category: PathCategory,
-        source: DirectorySource = getSetting("source"),
+        base64: string,
+        source: DirectorySource = getSetting<DirectorySource>("source"),
     ): Promise<string | undefined> {
-        const base64 = await this.#application.getTokenBase64();
         const fileName = this.#getFileName(category);
         const filePath = getFilePath(this.actor.type, source, category);
         const blob = await fetch(base64).then((result) => result.blob());
         // @ts-ignore
         const bucket = source === "s3" ? game.data.files.s3?.buckets[0] : undefined;
-        const FilePicker = foundry.applications.apps.FilePicker.implementation;
 
         const dirs = filePath.split("/");
         const cursors = [];
@@ -142,13 +167,13 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             try {
                 cursors.push(dir);
                 const path = cursors.join("/");
-                await FilePicker.createDirectory(source, path, { bucket });
+                await CONFIG.ux.FilePicker.createDirectory(source, path, { bucket });
             } catch (error: any) {}
         }
 
         try {
             const file = new File([blob], fileName, { type: "image/webp" });
-            const response = await FilePicker.upload(source, filePath, file, { bucket }, { notify: false });
+            const response = await CONFIG.ux.FilePicker.upload(source, filePath, file, { bucket }, { notify: false });
 
             const path = R.isObjectType(response) && response.status === "success" ? response.path : undefined;
             return path ? `${path}?${Date.now()}` : undefined;
@@ -157,18 +182,63 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         }
     }
 
+    async #saveAvatar(source?: DirectorySource) {
+        const base64 = await this.#application.getAvatarBase64();
+        const path = await this.#saveImage("avatar", base64, source);
+        if (!path) return;
+
+        await this.actor.update({ img: path });
+        notify.info("editor.avatar-saved", { path });
+    }
+
+    #getTokenUpdates(
+        token: TokenDocument | foundry.data.PrototypeToken<Actor>,
+        path: string,
+        baseScale: number,
+        isPF2e: boolean,
+    ) {
+        const isPopout = baseScale !== 1;
+
+        let scaleX = token.texture.scaleX < 0 ? baseScale * -1 : baseScale;
+        let scaleY = token.texture.scaleY < 0 ? baseScale * -1 : baseScale;
+
+        if (isPF2e && (token.actor as ActorPF2e).size === "sm") {
+            scaleX *= 0.8;
+            scaleY *= 0.8;
+        }
+
+        let updates: Record<string, any> = {
+            "texture.scaleX": scaleX,
+            "texture.scaleY": scaleY,
+            "texture.src": path,
+            "ring.enabled": false,
+        };
+
+        if (token instanceof foundry.data.PrototypeToken) {
+            updates = R.mapKeys(updates, (key) => `prototypeToken.${key}`);
+        }
+
+        if (isPopout && isPF2e) {
+            updates[`flags.${game.system.id}.autoscale`] = false;
+        }
+
+        return updates;
+    }
+
     async #saveToken(source?: DirectorySource) {
-        const path = await this.#saveImage("token", source);
+        const { base64, scale } = await this.#application.getTokenBase64();
+        const path = await this.#saveImage("token", base64, source);
         if (!path) return;
 
         const actor = this.actor;
+        const isPF2e = R.isIncludedIn(game.system.id, ["pf2e", "sf2e"]);
+
         if (actor.token) {
-            await actor.token.update({ "texture.src": path, "ring.enabled": false });
+            const updates = this.#getTokenUpdates(actor.token, path, scale, isPF2e);
+            await actor.token.update(updates);
         } else {
-            await actor.update({
-                "prototypeToken.texture.src": path,
-                "prototypeToken.ring.enabled": false,
-            });
+            const actorUpdates = this.#getTokenUpdates(actor.prototypeToken, path, scale, isPF2e);
+            await actor.update(actorUpdates);
 
             const updatePromises = R.pipe(
                 game.scenes.contents,
@@ -177,7 +247,8 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
                         scene.tokens.contents,
                         R.filter((token) => token.actorId === actor.id && token.actorLink),
                         R.map((token) => {
-                            return { _id: token.id, "texture.src": path, "ring.enabled": false };
+                            const updates = this.#getTokenUpdates(token, path, scale, isPF2e);
+                            return { ...updates, _id: token.id };
                         }),
                     );
 
@@ -199,6 +270,20 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             if (button.dataset.action === "open-server") continue;
             button.disabled = false;
         }
+    }
+
+    #readImage(file: File) {
+        const reader = new FileReader();
+
+        reader.addEventListener("load", () => {
+            const img = reader.result;
+            if (R.isString(img)) {
+                this.#unlockButtons();
+                this.#application.setAvatar(img);
+            }
+        });
+
+        reader.readAsDataURL(file);
     }
 
     #activateListeners(html: HTMLElement) {
@@ -226,6 +311,26 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         addListener(html, `input[name="popout-range"]`, "input", (target: HTMLInputElement) => {
             const range = target.valueAsNumber;
             this.#application.setPopoutRange(range);
+        });
+
+        addListener(html, `input[name="local-file"]`, "change", (target: HTMLInputElement) => {
+            const file = target.files?.[0];
+            return file && this.#readImage(file);
+        });
+
+        html.addEventListener("drop", (event) => {
+            const item = event.dataTransfer?.items[0];
+            if (!item) return;
+
+            if (item.kind === "string") {
+                item.getAsString((path) => {
+                    this.#unlockButtons();
+                    this.#application.setAvatar(path);
+                });
+            } else if (item.kind === "file" && item.type.startsWith("image/")) {
+                const file = item.getAsFile();
+                return file && this.#readImage(file);
+            }
         });
     }
 }

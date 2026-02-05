@@ -27,7 +27,7 @@
     </button>
     <button class="button" data-action="open-local">
         {{@root.i18n 'open-local'}}
-        <input type="file" accept="image/*" />
+        <input type="file" name="local-file" accept="image/*" />
     </button>
     <button class="button" data-action="open-server" {{disabled (not canBrowse)}}>
         {{@root.i18n 'open-server'}}
