@@ -5,6 +5,7 @@ import {
     drawCircleMask,
     drawPolygonMask,
     drawRectangleMask,
+    getSetting,
     MODULE,
     multiplyPointBy,
     R,
@@ -12,7 +13,7 @@ import {
 } from "foundry-helpers";
 import { Point } from "foundry-pf2e/foundry/common/_types.mjs";
 
-const BORDERS = new CycleArray("token-001", "token-002", "token-003");
+const RINGS = ["token-001", "token-002", "token-003"] as const;
 
 export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     #avatar!: PIXI.Sprite;
@@ -29,6 +30,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     #popout: { value: PopoutType; range: number } = { value: "disabled", range: this.defaultPopoutRange / 100 };
     #preview!: PIXI.Container;
     #previewBorder!: PIXI.Sprite;
+    #rings: CycleArray<string> = new CycleArray(...RINGS);
     #top!: PIXI.Sprite;
     #topMask!: PIXI.Graphics;
 
@@ -42,6 +44,9 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
         this.stage.eventMode = "static";
         this.stage.hitArea = this.#hitArea = new PIXI.Rectangle();
+
+        const ring = getSetting<string>("ring");
+        this.#rings.setFromValue(ring);
     }
 
     get previewSize(): number {
@@ -56,8 +61,12 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         return 10;
     }
 
+    get ring(): string {
+        return this.#rings.current;
+    }
+
     get borderImage(): string {
-        return MODULE.imagePath(BORDERS.current);
+        return MODULE.imagePath(this.#rings.current);
     }
 
     get backgroundImage(): string {
@@ -117,7 +126,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     }
 
     cycleBorder(direction: number | boolean) {
-        BORDERS.cycle(direction);
+        this.#rings.cycle(direction);
 
         const texture = PIXI.Texture.from(this.borderImage);
 

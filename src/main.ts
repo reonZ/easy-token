@@ -22,6 +22,13 @@ Hooks.once("init", () => {
         config: false,
     });
 
+    registerSetting("ring", {
+        type: String,
+        default: "",
+        scope: "user",
+        config: false,
+    });
+
     registerSettingMenu("directories", {
         restricted: true,
         type: DirectoriesMenu,

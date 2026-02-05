@@ -10,20 +10,16 @@ import {
     notify,
     R,
     render,
+    setSetting,
     setStyleProperty,
 } from "foundry-helpers";
 import { ActorPF2e } from "foundry-pf2e";
-import {
-    ApplicationConfiguration,
-    ApplicationRenderContext,
-    ApplicationRenderOptions,
-} from "foundry-pf2e/foundry/client/applications/_module.mjs";
 
 export class TokenEditor extends foundry.applications.api.ApplicationV2 {
     #actor: Actor;
     #application: EditorApplication = new EditorApplication();
 
-    constructor(actor: Actor, options: DeepPartial<ApplicationConfiguration> = {}) {
+    constructor(actor: Actor, options: DeepPartial<fa.ApplicationConfiguration> = {}) {
         options.id = TokenEditor.idFromActor(actor);
         super(options);
         this.#actor = actor;
@@ -57,7 +53,11 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         return this.#application.previewSize;
     }
 
-    protected async _prepareContext(_options: ApplicationRenderOptions): Promise<EditorContext> {
+    protected async _onClose(_options: fa.ApplicationClosingOptions) {
+        await setSetting("ring", this.#application.ring);
+    }
+
+    protected async _prepareContext(_options: fa.ApplicationRenderOptions): Promise<EditorContext> {
         return {
             canBrowse: game.user.can("FILES_BROWSE"),
             isToken: this.actor.isToken,
@@ -65,11 +65,11 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         };
     }
 
-    protected _renderHTML(context: EditorContext, _options: ApplicationRenderOptions): Promise<string> {
+    protected _renderHTML(context: EditorContext, _options: fa.ApplicationRenderOptions): Promise<string> {
         return render("editor", context);
     }
 
-    protected async _onFirstRender(_context: object, _options: ApplicationRenderOptions): Promise<void> {
+    protected async _onFirstRender(_context: object, _options: fa.ApplicationRenderOptions): Promise<void> {
         setStyleProperty(this.element, "--preview-size", this.previewSize);
 
         // we wait one frame before initializing the canvas
@@ -83,7 +83,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         });
     }
 
-    protected _replaceHTML(result: string, content: HTMLElement, _options: ApplicationRenderOptions) {
+    protected _replaceHTML(result: string, content: HTMLElement, _options: fa.ApplicationRenderOptions) {
         content.innerHTML = result;
         this.#activateListeners(content);
     }
@@ -364,7 +364,7 @@ type EventAction =
     | "save-avatar"
     | "save-token";
 
-type EditorContext = ApplicationRenderContext & {
+type EditorContext = fa.ApplicationRenderContext & {
     canBrowse: boolean;
     isToken: boolean;
     popoutRange: number;
