@@ -8,20 +8,24 @@
             "discord": "idleatre"
         }
     ],
-    "esmodules": ["scripts/main.js"],
+    "esmodules": [
+        "scripts/main.js"
+    ],
     "compatibility": {
         "minimum": "13.351",
         "verified": "13.351",
         "maximum": "13"
     },
-    "version": "1.2.2",
+    "version": "2.0.0",
     "url": "https://github.com/reonZ/easy-token",
     "readme": "https://github.com/reonZ/easy-token/blob/master/README.md",
     "manifest": "https://raw.githubusercontent.com/reonZ/easy-token/master/module.json",
-    "download": "https://github.com/reonZ/easy-token/releases/download/1.2.2/module.zip",
+    "download": "https://github.com/reonZ/easy-token/releases/download/2.0.0/module.zip",
     "changelog": "https://github.com/reonZ/easy-token/releases",
     "bugs": "https://github.com/reonZ/easy-token/issues",
-    "styles": ["styles/easy-token.css"],
+    "styles": [
+        "styles/easy-token.css"
+    ],
     "languages": [
         {
             "lang": "en",
