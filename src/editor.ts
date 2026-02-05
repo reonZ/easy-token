@@ -176,7 +176,12 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             const response = await CONFIG.ux.FilePicker.upload(source, filePath, file, { bucket }, { notify: false });
 
             const path = R.isObjectType(response) && response.status === "success" ? response.path : undefined;
-            return path ? `${path}?${Date.now()}` : undefined;
+
+            if (path) {
+                notify.info("editor.saved", category, { path });
+                // we add cache buster
+                return `${path}?${Date.now()}`;
+            }
         } catch (error: any) {
             MODULE.error("an error occured while saving an image", error);
         }
@@ -188,7 +193,6 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         if (!path) return;
 
         await this.actor.update({ img: path });
-        notify.info("editor.avatar-saved", { path });
     }
 
     #getTokenUpdates(
@@ -259,8 +263,6 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
             await Promise.all(updatePromises);
         }
-
-        notify.info("editor.token-saved", { path });
     }
 
     #unlockButtons() {

@@ -9,3 +9,8 @@
   - add special exceptions for the `Pathfinder Second Edition` system:
     - unlock the token scaling
     - make sure to handle `small` tokens
+
+#
+
+- fix notification message prefix being inverted
+- fix notification message containing the cache buster
