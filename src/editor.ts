@@ -112,6 +112,11 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
                 return this.#openBrowser();
             }
 
+            case "ring-cycle": {
+                const direction = Number(target.dataset.direction);
+                return this.#application.cycleBorder(direction);
+            }
+
             case "save-all": {
                 const source = getSetting<DirectorySource>("source");
                 await this.#saveAvatar(source);
@@ -337,7 +342,14 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
     }
 }
 
-type EventAction = "load-avatar" | "open-local" | "open-server" | "save-all" | "save-avatar" | "save-token";
+type EventAction =
+    | "load-avatar"
+    | "open-local"
+    | "open-server"
+    | "ring-cycle"
+    | "save-all"
+    | "save-avatar"
+    | "save-token";
 
 type EditorContext = ApplicationRenderContext & {
     canBrowse: boolean;

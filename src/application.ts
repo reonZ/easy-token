@@ -1,5 +1,6 @@
 import {
     addPoints,
+    CycleArray,
     dividePoints,
     drawCircleMask,
     drawPolygonMask,
@@ -11,13 +12,15 @@ import {
 } from "foundry-helpers";
 import { Point } from "foundry-pf2e/foundry/common/_types.mjs";
 
+const BORDERS = new CycleArray("token-001", "token-002", "token-003");
+
 export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     #avatar!: PIXI.Sprite;
     #background!: PIXI.Sprite;
-    #border!: PIXI.Sprite;
     #bottom!: PIXI.Sprite;
     #bottomMask!: PIXI.Graphics;
     #editor!: PIXI.Container<PIXI.DisplayObject>;
+    #editorBorder!: PIXI.Sprite;
     #hitArea: PIXI.Rectangle;
     #dragData: DragData = {
         avatar: { offset: { x: 0, y: 0 } },
@@ -25,6 +28,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     };
     #popout: { value: PopoutType; range: number } = { value: "disabled", range: this.defaultPopoutRange / 100 };
     #preview!: PIXI.Container;
+    #previewBorder!: PIXI.Sprite;
     #top!: PIXI.Sprite;
     #topMask!: PIXI.Graphics;
 
@@ -53,11 +57,11 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     }
 
     get borderImage(): string {
-        return MODULE.relativePath("images", "token-001.webp");
+        return MODULE.imagePath(BORDERS.current);
     }
 
     get backgroundImage(): string {
-        return MODULE.relativePath("images", "background.webp");
+        return MODULE.imagePath("background");
     }
 
     get defaultPopoutRange(): number {
@@ -65,7 +69,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     }
 
     get dropImage(): string {
-        return MODULE.relativePath("images", "drop.webp");
+        return MODULE.imagePath("drop");
     }
 
     setAvatar(image: string, skipPreview: boolean = false) {
@@ -109,7 +113,16 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     }
 
     setBorderColor(color: PIXI.ColorSource) {
-        this.#border.tint = color;
+        this.#previewBorder.tint = color;
+    }
+
+    cycleBorder(direction: number | boolean) {
+        BORDERS.cycle(direction);
+
+        const texture = PIXI.Texture.from(this.borderImage);
+
+        this.#editorBorder.texture = texture;
+        this.#previewBorder.texture = texture;
     }
 
     draw() {
@@ -254,7 +267,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
         const avatar = (this.#avatar = new PIXI.Sprite());
 
-        const border = new PIXI.Sprite();
+        const border = (this.#editorBorder = new PIXI.Sprite());
         border.alpha = 0.4;
         border.texture = PIXI.Texture.from(this.borderImage);
 
@@ -303,7 +316,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         const top = (this.#top = new PIXI.Sprite());
         const bottom = (this.#bottom = new PIXI.Sprite());
 
-        const border = (this.#border = new PIXI.Sprite());
+        const border = (this.#previewBorder = new PIXI.Sprite());
         border.zIndex = this.previewBorderIndex;
         border.texture = PIXI.Texture.from(this.borderImage);
 
