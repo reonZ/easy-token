@@ -175,7 +175,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     }
 
     #getTokenRect() {
-        if (this.isPopoutToken) {
+        if (this.isPopoutToken || this.isDynamicToken) {
             return new PIXI.Rectangle(this.#preview.x, this.#preview.y, this.previewSize, this.previewSize);
         }
 
