@@ -1,3 +1,8 @@
+# 2.1.1
+
+- fix non-popout dynamic token subject being off-center
+- fix possible empty file name when the actor has a name comprised of special characters only
+
 # 2.1.0
 
 - add 2 more token rings
