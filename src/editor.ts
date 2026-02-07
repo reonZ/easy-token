@@ -161,7 +161,8 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
     }
 
     #getFileName(category: PathCategory): string {
-        const name = (this.actor.token?.name ?? this.actor.name).slugify({ strict: true });
+        const baseName = this.actor.token?.name ?? this.actor.name;
+        const name = baseName.slugify({ strict: true }) || "baseName";
         const fullName = this.actor.token ? `${name}.${this.actor.token.id}` : name;
         return `${fullName}.${category}.webp`;
     }
@@ -255,7 +256,6 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
     async #saveToken(source?: DirectorySource) {
         const { base64, isDynamic, scale } = await this.#application.getTokenBase64();
-        console.log(isDynamic, scale);
         const path = await this.#saveImage("token", base64, source);
         if (!path) return;
 
