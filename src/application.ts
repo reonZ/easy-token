@@ -11,6 +11,8 @@ import {
 } from "foundry-helpers";
 import { Point } from "foundry-pf2e/foundry/common/_types.mjs";
 
+const MASKS_COLORS = ["#ff0000", "#00ff00", "#0051ff"];
+
 export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     static BACKGROUNDS = ["background-plain", "background-marble", "background-noise"] as const;
     static RINGS = ["token-001", "token-002", "token-003", "token-dynamic"] as const;
@@ -20,6 +22,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     #dragData: DragData = { avatar: { x: 0, y: 0 }, preview: { x: 0, y: 0 } };
     #editor!: PIXI.Container<PIXI.DisplayObject>;
     #editorBorder!: PIXI.Sprite;
+    #editorMasks: Collection<string, PIXI.Graphics> = new Collection();
     #hitArea: PIXI.Rectangle;
     #isPopout: boolean = false;
     #masks: Collection<string, MaskData> = new Collection();
@@ -55,7 +58,12 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
                 width: i === 0 ? 1.5 : 0,
             };
 
-            this.#masks.set(id, { id, ...maskDefault, default: maskDefault });
+            this.#masks.set(id, {
+                ...maskDefault,
+                id,
+                color: MASKS_COLORS.at(i) ?? "#ffffff",
+                default: maskDefault,
+            });
         }
 
         const { background, ring } = getSetting<SavedCustomOptions>("custom");
@@ -146,10 +154,10 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     }
 
     resetMasks() {
-        for (const mask of this.masks) {
-            mask.angle = mask.default.angle;
-            mask.range = mask.default.range;
-            mask.width = mask.default.width;
+        for (const data of this.masks) {
+            data.angle = data.default.angle;
+            data.range = data.default.range;
+            data.width = data.default.width;
         }
 
         this.#parent.resetMasks();
@@ -318,8 +326,13 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
             this.#overMask.x = halfSize;
             this.#overMask.y = halfSize;
 
-            for (const { angle, range, width } of this.masks) {
-                if (range <= 0 || width <= 0) continue;
+            for (const { id, color, angle, range, width } of this.masks) {
+                const editorMask = this.#editorMasks.get(id) as PIXI.Graphics;
+
+                if (range <= 0 || width <= 0) {
+                    editorMask.alpha = 0;
+                    continue;
+                }
 
                 const top = halfSize - halfSize * range;
                 const side = halfSize * width;
@@ -327,6 +340,14 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
                 mask.pivot.set(halfSize);
                 mask.angle = angle;
+
+                editorMask.clear();
+                editorMask.lineStyle(1, color);
+                editorMask.drawRect(0, 0, side * 2, halfSize - top);
+                editorMask.pivot.set(editorMask.width / 2, editorMask.height);
+
+                editorMask.alpha = 0.5;
+                editorMask.angle = angle;
 
                 this.#overMask.addChild(mask);
             }
@@ -341,6 +362,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     #createEditor() {
         const { height, width } = this.screen;
         const size = this.previewSize;
+        const center = (width - size) / 2;
 
         const editor = (this.#editor = new PIXI.Container());
 
@@ -352,7 +374,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
         for (const sprite of [avatar, border]) {
             sprite.anchor.set(0.5);
-            sprite.position.set((width - size) / 2);
+            sprite.position.set(center);
 
             editor.addChild(sprite);
         }
@@ -361,6 +383,16 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
         editor.mask = mask;
         editor.addChild(mask);
+
+        for (const { id } of this.masks) {
+            const editorMask = new PIXI.Graphics();
+
+            editorMask.alpha = 0;
+            editorMask.position.set(center);
+
+            this.#editorMasks.set(id, editorMask);
+            editor.addChild(editorMask);
+        }
 
         this.stage.addChild(editor);
     }
@@ -412,13 +444,14 @@ type DragData = {
 
 export type MaskData = {
     id: string;
+    color: PIXI.ColorSource;
     angle: number;
     range: number;
     width: number;
-    default: Omit<MaskData, "id" | "default">;
+    default: Omit<MaskData, "id" | "color" | "default">;
 };
 
-export type MaskUpdateType = Exclude<keyof MaskData, "id" | "default">;
+export type MaskUpdateType = keyof MaskData["default"];
 
 export type PopoutType = "both" | "bottom" | "disabled" | "top";
 
