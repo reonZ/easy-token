@@ -11,11 +11,12 @@ import {
 } from "foundry-helpers";
 import { Point } from "foundry-pf2e/foundry/common/_types.mjs";
 
-const RINGS = ["token-001", "token-002", "token-003", "token-dynamic"] as const;
-
 export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
+    static BACKGROUNDS = ["background-plain", "background-marble", "background-noise"] as const;
+    static RINGS = ["token-001", "token-002", "token-003", "token-dynamic"] as const;
+
     #avatar!: PIXI.Sprite;
-    #background!: PIXI.Sprite;
+    #backgrounds: CycleArray<string> = new CycleArray(...EditorApplication.BACKGROUNDS);
     #dragData: DragData = { avatar: { x: 0, y: 0 }, preview: { x: 0, y: 0 } };
     #editor!: PIXI.Container<PIXI.DisplayObject>;
     #editorBorder!: PIXI.Sprite;
@@ -26,8 +27,9 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     #overMask!: PIXI.Graphics;
     #parent: TokenEditor;
     #preview!: PIXI.Container;
+    #previewBackground!: PIXI.Sprite;
     #previewBorder!: PIXI.Sprite;
-    #rings: CycleArray<string> = new CycleArray(...RINGS);
+    #rings: CycleArray<string> = new CycleArray(...EditorApplication.RINGS);
     #underImage!: PIXI.Sprite;
     #underMask!: PIXI.Graphics;
 
@@ -46,11 +48,25 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
         for (let i = 0; i < 4; i++) {
             const id = foundry.utils.randomID();
-            this.#masks.set(id, { id, angle: 0, range: 0, width: 0 });
+
+            const maskDefault: MaskData["default"] = {
+                angle: 0,
+                range: i === 0 ? 1.5 : 0,
+                width: i === 0 ? 1.5 : 0,
+            };
+
+            this.#masks.set(id, { id, ...maskDefault, default: maskDefault });
         }
 
-        const ring = getSetting<string>("ring");
-        this.#rings.setFromValue(ring);
+        const { background, ring } = getSetting<SavedCustomOptions>("custom");
+
+        if (background) {
+            this.#backgrounds.setFromValue(background);
+        }
+
+        if (ring) {
+            this.#rings.setFromValue(ring);
+        }
     }
 
     get masks(): Collection<string, MaskData> {
@@ -81,12 +97,16 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         return this.#rings.current;
     }
 
+    get background(): string {
+        return this.#backgrounds.current;
+    }
+
     get borderImage(): string {
         return MODULE.imagePath(this.#rings.current);
     }
 
     get backgroundImage(): string {
-        return MODULE.imagePath("background");
+        return MODULE.imagePath(this.#backgrounds.current);
     }
 
     get dropImage(): string {
@@ -123,15 +143,13 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         }
 
         this.#parent.unlockButtons();
-
-        this.resetMasks();
     }
 
     resetMasks() {
         for (const mask of this.masks) {
-            mask.angle = 0;
-            mask.range = 0;
-            mask.width = 0;
+            mask.angle = mask.default.angle;
+            mask.range = mask.default.range;
+            mask.width = mask.default.width;
         }
 
         this.#parent.resetMasks();
@@ -148,15 +166,20 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     }
 
     setBackgroundColor(color: PIXI.ColorSource) {
-        this.#background.tint = color;
+        this.#previewBackground.tint = color;
     }
 
     setBorderColor(color: PIXI.ColorSource) {
         this.#previewBorder.tint = color;
     }
 
-    cycleRing(direction: number | boolean) {
-        this.#rings.cycle(direction);
+    setSelectedBackground(value: string) {
+        this.#backgrounds.setFromValue(value);
+        this.#previewBackground.texture = PIXI.Texture.from(this.backgroundImage);
+    }
+
+    setSelectedRing(value: string) {
+        this.#rings.setFromValue(value);
 
         const texture = PIXI.Texture.from(this.borderImage);
 
@@ -268,7 +291,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
     #setPreview() {
         const alpha = this.isDynamicToken ? 0 : 1;
-        this.#background.alpha = alpha;
+        this.#previewBackground.alpha = alpha;
         this.#previewBorder.alpha = alpha;
 
         const scale = this.isDynamicToken ? 0.66 / 0.85 : 1;
@@ -354,11 +377,8 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         preview.mask = previewMask;
         preview.addChild(previewMask);
 
-        const background = (this.#background = new PIXI.Sprite());
+        const background = (this.#previewBackground = new PIXI.Sprite());
         background.texture = PIXI.Texture.from(this.backgroundImage);
-
-        const backgroundNoise = new PIXI.NoiseFilter(0.05, 0.2);
-        background.filters = [backgroundNoise];
 
         const overImage = (this.#overImage = new PIXI.Sprite());
         const underImage = (this.#underImage = new PIXI.Sprite());
@@ -393,8 +413,14 @@ export type MaskData = {
     angle: number;
     range: number;
     width: number;
+    default: Omit<MaskData, "id" | "default">;
 };
 
-export type MaskUpdateType = Exclude<keyof MaskData, "id">;
+export type MaskUpdateType = Exclude<keyof MaskData, "id" | "default">;
 
 export type PopoutType = "both" | "bottom" | "disabled" | "top";
+
+export type SavedCustomOptions = {
+    background?: string;
+    ring?: string;
+};

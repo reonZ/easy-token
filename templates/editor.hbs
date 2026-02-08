@@ -13,11 +13,22 @@
             <div class="label">{{@root.i18n 'mask.range'}}</div>
             <input type="range" name="update-mask" data-update="range" min="0" max="1.5" step="0.01" value="{{mask.range}}">
             <div class="label">{{@root.i18n 'mask.width'}}</div>
-            <input type="range" name="update-mask" data-update="width" min="0" max="1" step="0.01" value="{{mask.width}}">
+            <input type="range" name="update-mask" data-update="width" min="0" max="1.5" step="0.01" value="{{mask.width}}">
             <div class="label">{{@root.i18n 'mask.angle'}}</div>
             <input type="range" name="update-mask" data-update="angle" min="-180" max="180" value="{{mask.angle}}">
         </div>
         {{/each}}
+    </div>
+    <div class="extras">
+        <select name="select-background">
+            {{selectOptions backgrounds selected=background}}
+        </select>
+        <select name="select-ring">
+            {{selectOptions rings selected=ring}}
+        </select>
+        <button type="button" data-action="download">
+            {{@root.i18n 'download'}}
+        </button>
     </div>
 </div>
 
@@ -31,44 +42,28 @@
         </div>
         <div class="color-picker">
             <input type="color" name="background" value="#ffffff" />
-            <label>{{@root.i18n 'background'}}</label>
+            <label>{{@root.i18n 'background.label'}}</label>
         </div>
     </div>
-    <div class="buttons">
-        <button class="button" data-action="load-avatar">
-            {{@root.i18n 'load-avatar'}}
-        </button>
-        <button class="button" data-action="open-local">
-            {{@root.i18n 'open-local'}}
-            <input type="file" name="local-file" accept="image/*" />
-        </button>
-        <button class="button" data-action="open-server" {{disabled (not canBrowse)}}>
-            {{@root.i18n 'open-server'}}
-        </button>
-        <button class="button" data-action="save-avatar" disabled>
-            {{@root.i18n 'save-avatar'}}
-        </button>
-        <button class="button" data-action="save-token" disabled>
-            {{@root.i18n 'save-token'}}
-        </button>
-        <button class="button" data-action="save-all" disabled>
-            {{@root.i18n 'save-all'}}
-        </button>
-    </div>
+    <button class="button" data-action="load-avatar">
+        {{@root.i18n 'load-avatar'}}
+    </button>
+    <button class="button" data-action="open-local">
+        {{@root.i18n 'open-local'}}
+        <input type="file" name="local-file" accept="image/*" />
+    </button>
+    <button class="button" data-action="open-server" {{disabled (not canBrowse)}}>
+        {{@root.i18n 'open-server'}}
+    </button>
+    <button class="button" data-action="save-avatar" disabled>
+        {{@root.i18n 'save-avatar'}}
+    </button>
+    <button class="button" data-action="save-token" disabled>
+        {{@root.i18n 'save-token'}}
+    </button>
+    <button class="button" data-action="save-all" disabled>
+        {{@root.i18n 'save-all'}}
+    </button>
 </div>
 
-<div class="preview" data-tooltip-direction="UP">
-    <div class="ring-cycle">
-        <a data-action="ring-cycle" data-direction="-1" {{{@root.i18n.tooltip 'ring.previous'}}}>
-            <i class="fa-solid fa-caret-left"></i>
-        </a>
-        <a data-action="ring-cycle" data-direction="1" {{{@root.i18n.tooltip 'ring.next'}}}>
-            <i class="fa-solid fa-caret-right"></i>
-        </a>
-    </div>
-    <div class="controls">
-        <a data-action="download" {{{@root.i18n.tooltip 'download'}}}>
-            <i class="fa-solid fa-download"></i>
-        </a>
-    </div>
-</div>
+<div class="preview" data-tooltip-direction="UP"></div>

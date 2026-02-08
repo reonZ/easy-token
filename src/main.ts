@@ -22,9 +22,9 @@ Hooks.once("init", () => {
         config: false,
     });
 
-    registerSetting("ring", {
-        type: String,
-        default: "",
+    registerSetting("custom", {
+        type: Object,
+        default: {},
         scope: "user",
         config: false,
     });

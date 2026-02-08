@@ -21,7 +21,12 @@
             "token": "Token"
         },
         "editor": {
-            "background": "Background",
+            "background": {
+                "background-plain": "Plain Background",
+                "background-marble": "Marble Background",
+                "background-noise": "Noise Background",
+                "label": "Background"
+            },
             "border": "Border",
             "download": "Download Token Image",
             "load-avatar": "Load Avatar Image",
@@ -41,8 +46,8 @@
                 "top": "Top Popout"
             },
             "ring": {
-                "next": "Next Ring",
-                "previous": "Previous Ring"
+                "dynamic": "Dynamic Ring",
+                "label": "Token Ring {number}"
             },
             "save-all": "Save All & Close",
             "save-avatar": "Save Avatar Image",

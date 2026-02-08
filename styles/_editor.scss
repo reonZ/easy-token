@@ -45,6 +45,23 @@
                     height: 1.5em;
                 }
             }
+
+            .extras {
+                display: flex;
+                flex-direction: column;
+                gap: 0.2rem;
+                padding: 0.3rem;
+
+                button,
+                select {
+                    height: 2em;
+                    width: 100%;
+                }
+
+                button {
+                    margin-top: 2px;
+                }
+            }
         }
 
         .canvas {
@@ -68,7 +85,7 @@
             height: calc(100% - var(--preview-size));
             width: var(--preview-size);
             transform: translateX(50%);
-            padding: 0.5rem 1rem;
+            padding: 0.3rem 1rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -123,16 +140,11 @@
             border-right-color: transparent;
             border-bottom-color: transparent;
 
-            .controls,
             .ring-cycle {
                 position: absolute;
                 bottom: 0;
                 font-size: 1.8em;
                 opacity: 0.2;
-            }
-
-            .controls {
-                left: 0.3rem;
             }
 
             .ring-cycle {
@@ -143,7 +155,6 @@
             }
 
             &:hover {
-                .controls,
                 .ring-cycle {
                     opacity: 1;
                 }

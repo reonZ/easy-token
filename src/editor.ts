@@ -1,4 +1,4 @@
-import { EditorApplication, MaskData, MaskUpdateType } from "application";
+import { EditorApplication, MaskData, MaskUpdateType, SavedCustomOptions } from "application";
 import { DirectorySource, getFilePath, PathCategory } from "directories";
 import {
     addListener,
@@ -78,13 +78,33 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
     }
 
     protected async _onClose(_options: fa.ApplicationClosingOptions) {
-        await setSetting("ring", this.application.ring);
+        await setSetting<SavedCustomOptions>("custom", {
+            background: this.application.background,
+            ring: this.application.ring,
+        });
     }
 
     protected async _prepareContext(_options: fa.ApplicationRenderOptions): Promise<EditorContext> {
+        const rings: EditorContext["rings"] = R.map(EditorApplication.RINGS, (name) => {
+            const label =
+                name === "token-dynamic"
+                    ? localize("editor.ring.dynamic")
+                    : localize("editor.ring.label", { number: name.split("-")[1] });
+            return { value: name, label };
+        });
+
+        const backgrounds: EditorContext["backgrounds"] = R.map(EditorApplication.BACKGROUNDS, (name) => {
+            const label = localize("editor.background", name);
+            return { value: name, label };
+        });
+
         return {
+            background: this.application.background,
+            backgrounds,
             canBrowse: game.user.can("FILES_BROWSE"),
             masks: this.application.masks,
+            ring: this.application.ring,
+            rings,
             warning: this.actor.isToken ? "token" : !this.actor.prototypeToken.actorLink ? "actor" : undefined,
         };
     }
@@ -145,11 +165,6 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
             case "open-server": {
                 return this.#openBrowser();
-            }
-
-            case "ring-cycle": {
-                const direction = Number(target.dataset.direction);
-                return this.application.cycleRing(direction);
             }
 
             case "save-all": {
@@ -358,6 +373,16 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             this.element.classList.toggle("use-popout", enabled);
         });
 
+        addListener(html, `select[name="select-background"]`, "change", (target: HTMLSelectElement) => {
+            const value = target.value;
+            this.application.setSelectedBackground(value);
+        });
+
+        addListener(html, `select[name="select-ring"]`, "change", (target: HTMLSelectElement) => {
+            const value = target.value;
+            this.application.setSelectedRing(value);
+        });
+
         html.addEventListener("drop", (event) => {
             const item = event.dataTransfer?.items[0];
             if (!item) return;
@@ -379,13 +404,16 @@ type EventAction =
     | "load-avatar"
     | "open-local"
     | "open-server"
-    | "ring-cycle"
     | "save-all"
     | "save-avatar"
     | "save-token";
 
 type EditorContext = fa.ApplicationRenderContext & {
+    background: string;
+    backgrounds: { value: string; label: string }[];
     canBrowse: boolean;
     masks: Collection<string, MaskData>;
+    ring: string;
+    rings: { value: string; label: string }[];
     warning: string | undefined;
 };
