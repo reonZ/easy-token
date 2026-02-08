@@ -4,7 +4,7 @@
 
 Adds a fast and easy way to create, save and update a token image using the foundry's renderer engine.
 
-![](./images/editor.webp)
+![](./images/editor-2.webp)
 
 A new option will appear in the header of an actor sheet (if the user has the required permissions) which will open a token editor.
 
@@ -28,7 +28,7 @@ Once an image is loaded, you can move it, zoom in & out, adjust an eventual popo
 The result is shown live in the preview square bottom right of the editor.
 
 > [!NOTE]
-> If you use any of the popout options, the module will automatically change the scale of the token to fit nicely inside a grid cell.
+> If you use any the popout masks, the module will automatically change the scale of the token to fit nicely inside a grid cell.
 
 ### Pathfinder Second Edition
 
