@@ -1,14 +1,12 @@
+import { TokenEditor } from "editor";
 import {
-    addPoints,
     CycleArray,
     dividePoints,
     drawCircleMask,
-    drawPolygonMask,
     drawRectangleMask,
     getSetting,
     MODULE,
     multiplyPointBy,
-    R,
     subtractPoint,
 } from "foundry-helpers";
 import { Point } from "foundry-pf2e/foundry/common/_types.mjs";
@@ -18,23 +16,22 @@ const RINGS = ["token-001", "token-002", "token-003", "token-dynamic"] as const;
 export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     #avatar!: PIXI.Sprite;
     #background!: PIXI.Sprite;
-    #bottom!: PIXI.Sprite;
-    #bottomMask!: PIXI.Graphics;
+    #dragData: DragData = { avatar: { x: 0, y: 0 }, preview: { x: 0, y: 0 } };
     #editor!: PIXI.Container<PIXI.DisplayObject>;
     #editorBorder!: PIXI.Sprite;
     #hitArea: PIXI.Rectangle;
-    #dragData: DragData = {
-        avatar: { offset: { x: 0, y: 0 } },
-        preview: { offset: { x: 0, y: 0 }, origin: { x: 0, y: 0 } },
-    };
-    #popout: { value: PopoutType; range: number } = { value: "disabled", range: this.defaultPopoutRange / 100 };
+    #isPopout: boolean = false;
+    #masks: Collection<string, MaskData> = new Collection();
+    #overImage!: PIXI.Sprite;
+    #overMask!: PIXI.Graphics;
+    #parent: TokenEditor;
     #preview!: PIXI.Container;
     #previewBorder!: PIXI.Sprite;
     #rings: CycleArray<string> = new CycleArray(...RINGS);
-    #top!: PIXI.Sprite;
-    #topMask!: PIXI.Graphics;
+    #underImage!: PIXI.Sprite;
+    #underMask!: PIXI.Graphics;
 
-    constructor() {
+    constructor(parent: TokenEditor) {
         super({
             backgroundAlpha: 0,
             antialias: true,
@@ -42,23 +39,42 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
             resolution: window.devicePixelRatio,
         });
 
+        this.#parent = parent;
+
         this.stage.eventMode = "static";
         this.stage.hitArea = this.#hitArea = new PIXI.Rectangle();
 
+        for (let i = 0; i < 4; i++) {
+            const id = foundry.utils.randomID();
+            this.#masks.set(id, { id, angle: 0, range: 0, width: 0 });
+        }
+
         const ring = getSetting<string>("ring");
         this.#rings.setFromValue(ring);
+    }
+
+    get masks(): Collection<string, MaskData> {
+        return this.#masks;
     }
 
     get previewSize(): number {
         return 300;
     }
 
-    get previewTokenSize(): number {
-        return this.previewSize * 0.85;
+    get previewTokenRation(): number {
+        return 0.85;
     }
 
-    get previewBorderIndex(): number {
-        return 10;
+    get previewDynamicRatio(): number {
+        return 0.66;
+    }
+
+    get previewTokenSize(): number {
+        return this.previewSize * this.previewTokenRation;
+    }
+
+    get previewScaledTokenSize(): number {
+        return this.previewTokenSize * (this.isDynamicToken ? this.previewDynamicRatio / this.previewTokenRation : 1);
     }
 
     get ring(): string {
@@ -73,16 +89,17 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         return MODULE.imagePath("background");
     }
 
-    get defaultPopoutRange(): number {
-        return 66;
-    }
-
     get dropImage(): string {
         return MODULE.imagePath("drop");
     }
 
     get isPopoutToken(): boolean {
-        return this.#popout.value !== "disabled";
+        return this.#isPopout;
+    }
+
+    set isPopoutToken(value: boolean) {
+        this.#isPopout = value;
+        this.resetMasks();
     }
 
     get isDynamicToken(): boolean {
@@ -99,30 +116,35 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
         if (skipPreview) return;
 
-        for (const sprite of [this.#top, this.#bottom]) {
+        for (const sprite of [this.#overImage, this.#underImage]) {
             sprite.texture = texture;
             sprite.position.set(size / 2);
             sprite.scale.set(1);
         }
 
-        this.#setPreviewMask();
+        this.#parent.unlockButtons();
 
-        this.#bottomMask.position.set(0);
-        this.#topMask.position.set(0);
+        this.resetMasks();
     }
 
-    setPopout(popout: PopoutType) {
-        this.#popout.value = popout;
+    resetMasks() {
+        for (const mask of this.masks) {
+            mask.angle = 0;
+            mask.range = 0;
+            mask.width = 0;
+        }
 
-        this.#top.zIndex = R.isIncludedIn(popout, ["both", "top"]) ? this.previewBorderIndex * 2 : 0;
-        this.#bottom.zIndex = R.isIncludedIn(popout, ["both", "bottom"]) ? this.previewBorderIndex * 2 : 0;
-
+        this.#parent.resetMasks();
         this.#setPreviewMask();
     }
 
-    setPopoutRange(range: number) {
-        this.#popout.range = range / 100;
-        this.#setPreviewMask();
+    updateMask(id: string, type: MaskUpdateType, value: number) {
+        const mask = this.masks.get(id);
+
+        if (mask) {
+            mask[type] = value;
+            this.#setPreviewMask();
+        }
     }
 
     setBackgroundColor(color: PIXI.ColorSource) {
@@ -133,7 +155,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         this.#previewBorder.tint = color;
     }
 
-    cycleBorder(direction: number | boolean) {
+    cycleRing(direction: number | boolean) {
         this.#rings.cycle(direction);
 
         const texture = PIXI.Texture.from(this.borderImage);
@@ -149,6 +171,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         this.#createEditor();
         this.#createPreview();
         this.#setPreview();
+        this.#setPreviewMask();
 
         this.setAvatar(this.dropImage, true);
 
@@ -201,7 +224,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         avatar.y -= offset.y;
         avatar.scale.set(value);
 
-        for (const sprite of [this.#top, this.#bottom]) {
+        for (const sprite of [this.#overImage, this.#underImage]) {
             sprite.x -= offset.x;
             sprite.y -= offset.y;
             sprite.scale.set(value);
@@ -213,13 +236,8 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         const previewCursor = event.getLocalPosition(this.#preview);
 
         this.#dragData = {
-            avatar: {
-                offset: subtractPoint(editorCursor, this.#avatar),
-            },
-            preview: {
-                offset: subtractPoint(previewCursor, this.#top),
-                origin: addPoints(this.#top.position, this.#topMask.position),
-            },
+            avatar: subtractPoint(editorCursor, this.#avatar),
+            preview: subtractPoint(previewCursor, this.#overImage),
         };
 
         this.stage.on("pointermove", this.#onDragLeftMove, this);
@@ -230,12 +248,12 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     #onDragLeftMove(event: PIXI.FederatedPointerEvent) {
         const editorCursor = event.getLocalPosition(this.#editor);
         const previewCursor = event.getLocalPosition(this.#preview);
-        const avatar = subtractPoint(editorCursor, this.#dragData.avatar.offset);
-        const preview = subtractPoint(previewCursor, this.#dragData.preview.offset);
+        const avatar = subtractPoint(editorCursor, this.#dragData.avatar);
+        const preview = subtractPoint(previewCursor, this.#dragData.preview);
 
         this.#avatar.position.set(avatar.x, avatar.y);
-        this.#top.position.set(preview.x, preview.y);
-        this.#bottom.position.set(preview.x, preview.y);
+        this.#overImage.position.set(preview.x, preview.y);
+        this.#underImage.position.set(preview.x, preview.y);
     }
 
     #onDragLeftEnd(_event: PIXI.FederatedPointerEvent) {
@@ -259,44 +277,40 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     }
 
     #setPreviewMask() {
-        for (const mask of [this.#topMask, this.#bottomMask]) {
+        for (const mask of [this.#underMask, this.#overMask]) {
+            if (!mask) continue;
             this.#preview.removeChild(mask);
-            mask?.destroy();
+            mask.destroy();
         }
 
         const size = this.previewSize;
-        const tokenSize = this.previewTokenSize * (this.isDynamicToken ? 0.66 / 0.85 : 1);
+        const tokenSize = this.previewScaledTokenSize;
         const halfSize = size / 2;
         const tokenHalfSize = tokenSize / 2;
 
-        if (this.#popout.value === "disabled") {
-            this.#topMask = drawCircleMask(halfSize, halfSize, tokenHalfSize);
-            this.#bottomMask = drawRectangleMask(0, 0, 0, 0);
-        } else if (this.#popout.value === "top") {
-            const limit = size * this.#popout.range;
-            this.#topMask = drawRectangleMask(0, 0, size, limit);
-            this.#bottomMask = drawCircleMask(halfSize, halfSize, tokenHalfSize);
+        this.#underMask = drawCircleMask(halfSize, halfSize, tokenHalfSize);
+        this.#overMask = new PIXI.Graphics();
 
-            const mask = drawRectangleMask(0, limit, size, size - limit);
-            this.#bottomMask.mask = mask;
-            this.#bottomMask.addChild(mask);
-        } else if (this.#popout.value === "bottom") {
-            const top = size * (1 - this.#popout.range);
-            this.#topMask = drawCircleMask(halfSize, halfSize, tokenHalfSize);
-            this.#bottomMask = drawRectangleMask(0, top, size, size - top);
+        if (this.isPopoutToken) {
+            this.#overMask.x = halfSize;
+            this.#overMask.y = halfSize;
 
-            const mask = drawRectangleMask(0, 0, size, top);
-            this.#topMask.mask = mask;
-            this.#topMask.addChild(mask);
-        } else {
-            this.#topMask = drawRectangleMask(0, 0, size, size);
-            this.#bottomMask = drawRectangleMask(0, 0, 0, 0);
+            for (const { angle, range, width } of this.masks) {
+                const top = halfSize - halfSize * range;
+                const side = halfSize * width;
+                const mask = drawRectangleMask(halfSize - side, top, side * 2, halfSize - top);
+
+                mask.pivot.set(halfSize);
+                mask.angle = angle;
+
+                this.#overMask.addChild(mask);
+            }
         }
 
-        this.#top.mask = this.#topMask;
-        this.#bottom.mask = this.#bottomMask;
+        this.#underImage.mask = this.#underMask;
+        this.#overImage.mask = this.#overMask;
 
-        this.#preview.addChild(this.#topMask, this.#bottomMask);
+        this.#preview.addChild(this.#underMask, this.#overMask);
     }
 
     #createEditor() {
@@ -318,14 +332,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
             editor.addChild(sprite);
         }
 
-        const mask = drawPolygonMask(
-            [0, 0],
-            [width, 0],
-            [width, height - size],
-            [width - size, height - size],
-            [width - size, height],
-            [0, height],
-        );
+        const mask = drawRectangleMask(0, 0, width - size, height);
 
         editor.mask = mask;
         editor.addChild(mask);
@@ -353,28 +360,22 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         const backgroundNoise = new PIXI.NoiseFilter(0.05, 0.2);
         background.filters = [backgroundNoise];
 
-        const top = (this.#top = new PIXI.Sprite());
-        const bottom = (this.#bottom = new PIXI.Sprite());
+        const overImage = (this.#overImage = new PIXI.Sprite());
+        const underImage = (this.#underImage = new PIXI.Sprite());
 
         const border = (this.#previewBorder = new PIXI.Sprite());
-        border.zIndex = this.previewBorderIndex;
         border.texture = PIXI.Texture.from(this.borderImage);
 
         const borderMask = drawCircleMask(0, 0, tokenSize / 2);
         border.mask = borderMask;
         border.addChild(borderMask);
 
-        for (const sprite of [background, bottom, top, border]) {
+        for (const sprite of [background, underImage, border, overImage]) {
             sprite.anchor.set(0.5);
             sprite.position.set(size / 2, size / 2);
 
             preview.addChild(sprite);
         }
-
-        // for (const sprite of [background, border]) {
-        //     sprite.width = tokenSize;
-        //     sprite.height = tokenSize;
-        // }
 
         preview.sortableChildren = true;
 
@@ -383,13 +384,17 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 }
 
 type DragData = {
-    avatar: {
-        offset: Point;
-    };
-    preview: {
-        offset: Point;
-        origin: Point;
-    };
+    avatar: Point;
+    preview: Point;
 };
+
+export type MaskData = {
+    id: string;
+    angle: number;
+    range: number;
+    width: number;
+};
+
+export type MaskUpdateType = Exclude<keyof MaskData, "id">;
 
 export type PopoutType = "both" | "bottom" | "disabled" | "top";

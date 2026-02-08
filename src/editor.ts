@@ -1,9 +1,10 @@
-import { EditorApplication, PopoutType } from "application";
+import { EditorApplication, MaskData, MaskUpdateType } from "application";
 import { DirectorySource, getFilePath, PathCategory } from "directories";
 import {
     addListener,
     addListenerAll,
     getSetting,
+    htmlClosest,
     htmlQuery,
     localize,
     MODULE,
@@ -17,7 +18,7 @@ import { ActorPF2e } from "foundry-pf2e";
 
 export class TokenEditor extends foundry.applications.api.ApplicationV2 {
     #actor: Actor;
-    #application: EditorApplication = new EditorApplication();
+    #application: EditorApplication = new EditorApplication(this);
 
     constructor(actor: Actor, options: DeepPartial<fa.ApplicationConfiguration> = {}) {
         options.id = TokenEditor.idFromActor(actor);
@@ -49,18 +50,41 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         return `${label} - ${this.actor.name}`;
     }
 
+    get application(): EditorApplication {
+        return this.#application;
+    }
+
     get previewSize(): number {
-        return this.#application.previewSize;
+        return this.application.previewSize;
+    }
+
+    unlockButtons() {
+        const buttons = this.element.querySelectorAll<HTMLButtonElement>(".menu button");
+
+        for (const button of buttons) {
+            if (button.dataset.action === "open-server") continue;
+            button.disabled = false;
+        }
+    }
+
+    resetMasks() {
+        const masks = this.element.querySelectorAll<HTMLInputElement>(`input[name=update-mask]`);
+
+        for (const input of masks) {
+            const update = input.dataset.update as MaskUpdateType;
+            const id = htmlClosest(input, "[data-id]")?.dataset.id as string;
+            input.valueAsNumber = this.application.masks.get(id)?.[update] ?? 0;
+        }
     }
 
     protected async _onClose(_options: fa.ApplicationClosingOptions) {
-        await setSetting("ring", this.#application.ring);
+        await setSetting("ring", this.application.ring);
     }
 
     protected async _prepareContext(_options: fa.ApplicationRenderOptions): Promise<EditorContext> {
         return {
             canBrowse: game.user.can("FILES_BROWSE"),
-            popoutRange: this.#application.defaultPopoutRange,
+            masks: this.application.masks,
             warning: this.actor.isToken ? "token" : !this.actor.prototypeToken.actorLink ? "actor" : undefined,
         };
     }
@@ -74,12 +98,12 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
         // we wait one frame before initializing the canvas
         requestAnimationFrame(() => {
-            const content = this.element.querySelector<HTMLElement>(".window-content");
-            if (!content) return;
+            const canvasWrapper = this.element.querySelector<HTMLElement>(".window-content .canvas");
+            if (!canvasWrapper) return;
 
-            content.prepend(this.#application.view);
-            this.#application.resizeTo = content;
-            this.#application.draw();
+            canvasWrapper.append(this.application.view);
+            this.application.resizeTo = canvasWrapper;
+            this.application.draw();
         });
     }
 
@@ -93,7 +117,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
         switch (action) {
             case "download": {
-                const { base64 } = await this.#application.getTokenBase64();
+                const { base64 } = await this.application.getTokenBase64();
                 const blob = await fetch(base64).then((result) => result.blob());
 
                 const link = document.createElement("a");
@@ -105,8 +129,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             }
 
             case "load-avatar": {
-                this.#unlockButtons();
-                return this.#application.setAvatar(this.actor.img);
+                return this.application.setAvatar(this.actor.img);
             }
 
             case "open-local": {
@@ -126,7 +149,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
             case "ring-cycle": {
                 const direction = Number(target.dataset.direction);
-                return this.#application.cycleBorder(direction);
+                return this.application.cycleRing(direction);
             }
 
             case "save-all": {
@@ -151,8 +174,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             allowUpload: true,
             current: this.actor.img,
             callback: (path: string) => {
-                this.#unlockButtons();
-                this.#application.setAvatar(path);
+                this.application.setAvatar(path);
             },
             type: "image",
         });
@@ -206,7 +228,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
     }
 
     async #saveAvatar(source?: DirectorySource) {
-        const base64 = await this.#application.getAvatarBase64();
+        const base64 = await this.application.getAvatarBase64();
         const path = await this.#saveImage("avatar", base64, source);
         if (!path) return;
 
@@ -255,7 +277,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
     }
 
     async #saveToken(source?: DirectorySource) {
-        const { base64, isDynamic, scale } = await this.#application.getTokenBase64();
+        const { base64, isDynamic, scale } = await this.application.getTokenBase64();
         const path = await this.#saveImage("token", base64, source);
         if (!path) return;
 
@@ -290,23 +312,13 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         }
     }
 
-    #unlockButtons() {
-        const buttons = this.element.querySelectorAll<HTMLButtonElement>(".menu button");
-
-        for (const button of buttons) {
-            if (button.dataset.action === "open-server") continue;
-            button.disabled = false;
-        }
-    }
-
     #readImage(file: File) {
         const reader = new FileReader();
 
         reader.addEventListener("load", () => {
             const img = reader.result;
             if (R.isString(img)) {
-                this.#unlockButtons();
-                this.#application.setAvatar(img);
+                this.application.setAvatar(img);
             }
         });
 
@@ -320,29 +332,30 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             "input",
             foundry.utils.throttle((target: HTMLInputElement) => {
                 if (target.name === "background") {
-                    this.#application.setBackgroundColor(target.value);
+                    this.application.setBackgroundColor(target.value);
                 } else if (target.name === "border") {
-                    this.#application.setBorderColor(target.value);
+                    this.application.setBorderColor(target.value);
                 }
             }, 50),
         );
 
-        addListener(html, `select[name="popout"]`, "change", (target: HTMLSelectElement) => {
-            const popout = target.value as PopoutType;
-            const input = target.nextElementSibling as HTMLInputElement;
+        addListenerAll(html, `input[name="update-mask"]`, "input", (target: HTMLInputElement) => {
+            const update = target.dataset.update as "angle" | "range" | "width";
+            const id = htmlClosest(target, `[data-id]`)?.dataset.id as string;
+            const value = target.valueAsNumber;
 
-            input.disabled = R.isIncludedIn(popout, ["disabled", "both"]);
-            this.#application.setPopout(popout);
-        });
-
-        addListener(html, `input[name="popout-range"]`, "input", (target: HTMLInputElement) => {
-            const range = target.valueAsNumber;
-            this.#application.setPopoutRange(range);
+            this.application.updateMask(id, update, value);
         });
 
         addListener(html, `input[name="local-file"]`, "change", (target: HTMLInputElement) => {
             const file = target.files?.[0];
             return file && this.#readImage(file);
+        });
+
+        addListener(html, `input[name="toggle-popout"]`, "change", (target: HTMLInputElement) => {
+            const enabled = target.checked;
+            this.application.isPopoutToken = enabled;
+            this.element.classList.toggle("use-popout", enabled);
         });
 
         html.addEventListener("drop", (event) => {
@@ -351,8 +364,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
             if (item.kind === "string") {
                 item.getAsString((path) => {
-                    this.#unlockButtons();
-                    this.#application.setAvatar(path);
+                    this.application.setAvatar(path);
                 });
             } else if (item.kind === "file" && item.type.startsWith("image/")) {
                 const file = item.getAsFile();
@@ -374,6 +386,6 @@ type EventAction =
 
 type EditorContext = fa.ApplicationRenderContext & {
     canBrowse: boolean;
-    popoutRange: number;
+    masks: Collection<string, MaskData>;
     warning: string | undefined;
 };
