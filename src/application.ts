@@ -319,6 +319,8 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
             this.#overMask.y = halfSize;
 
             for (const { angle, range, width } of this.masks) {
+                if (range <= 0 || width <= 0) continue;
+
                 const top = halfSize - halfSize * range;
                 const side = halfSize * width;
                 const mask = drawRectangleMask(halfSize - side, top, side * 2, halfSize - top);
