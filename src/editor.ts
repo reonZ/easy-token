@@ -20,6 +20,10 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
     #actor: Actor;
     #application: EditorApplication = new EditorApplication(this);
 
+    static DEFAULT_OPTIONS: DeepPartial<fa.ApplicationConfiguration> = {
+        classes: ["themed", "theme-dark"],
+    };
+
     constructor(actor: Actor, options: DeepPartial<fa.ApplicationConfiguration> = {}) {
         options.id = TokenEditor.idFromActor(actor);
         super(options);
