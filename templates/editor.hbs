@@ -19,17 +19,20 @@
         </div>
         {{/each}}
     </div>
-    <div class="extras">
-        <select name="select-background">
-            {{selectOptions backgrounds selected=background}}
-        </select>
+    <div class="token">
+        <div class="header">
+            {{@root.i18n 'token.title'}}
+        </div>
         <select name="select-ring">
             {{selectOptions rings selected=ring}}
         </select>
-        <button type="button" data-action="download">
-            {{@root.i18n 'download'}}
-        </button>
+        <select name="select-background">
+            {{selectOptions backgrounds selected=background}}
+        </select>
     </div>
+    <button type="button" data-action="download">
+        {{@root.i18n 'download'}}
+    </button>
 </div>
 
 <div class="canvas"></div>

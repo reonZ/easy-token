@@ -15,7 +15,7 @@ import { Point } from "foundry-pf2e/foundry/common/_types.mjs";
 const MASKS_COLORS = ["#ff0000", "#00ff00", "#0051ff"];
 
 export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
-    static BACKGROUNDS = ["background-plain", "background-marble", "background-noise"] as const;
+    static BACKGROUNDS = ["background-plain", "background-marble"] as const;
     static RINGS = [...R.range(1, 5).map((x) => `token-${String(x).padStart(3, "0")}`), "token-dynamic"] as const;
 
     #avatar!: PIXI.Sprite;
