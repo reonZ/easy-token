@@ -7,6 +7,7 @@ import {
     getSetting,
     MODULE,
     multiplyPointBy,
+    R,
     subtractPoint,
 } from "foundry-helpers";
 import { Point } from "foundry-pf2e/foundry/common/_types.mjs";
@@ -15,7 +16,7 @@ const MASKS_COLORS = ["#ff0000", "#00ff00", "#0051ff"];
 
 export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     static BACKGROUNDS = ["background-plain", "background-marble", "background-noise"] as const;
-    static RINGS = ["token-001", "token-002", "token-003", "token-dynamic"] as const;
+    static RINGS = [...R.range(1, 5).map((x) => `token-${String(x).padStart(3, "0")}`), "token-dynamic"] as const;
 
     #avatar!: PIXI.Sprite;
     #backgrounds: CycleArray<string> = new CycleArray(...EditorApplication.BACKGROUNDS);
