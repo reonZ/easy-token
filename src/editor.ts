@@ -19,6 +19,7 @@ import { ActorPF2e } from "foundry-pf2e";
 export class TokenEditor extends foundry.applications.api.ApplicationV2 {
     #actor: Actor;
     #application: EditorApplication = new EditorApplication(this);
+    #isPF2e: boolean;
 
     static DEFAULT_OPTIONS: DeepPartial<fa.ApplicationConfiguration> = {
         classes: ["themed", "theme-dark"],
@@ -26,8 +27,11 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
     constructor(actor: Actor, options: DeepPartial<fa.ApplicationConfiguration> = {}) {
         options.id = TokenEditor.idFromActor(actor);
+
         super(options);
+
         this.#actor = actor;
+        this.#isPF2e = R.isIncludedIn(game.system.id, ["pf2e", "sf2e"]);
     }
 
     static idFromActor(actor: Actor): string {
@@ -141,7 +145,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
         switch (action) {
             case "download": {
-                const { base64 } = await this.application.getTokenBase64();
+                const base64 = await this.application.getTokenBase64();
                 const blob = await fetch(base64).then((result) => result.blob());
 
                 const link = document.createElement("a");
@@ -254,19 +258,14 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         await this.actor.update({ img: path });
     }
 
-    #getTokenUpdates(
-        token: TokenDocument | foundry.data.PrototypeToken<Actor>,
-        path: string,
-        baseScale: number,
-        isDynamic: boolean,
-        isPF2e: boolean,
-    ) {
-        const isPopout = baseScale !== 1;
+    #getTokenUpdates(token: TokenDocument | foundry.data.PrototypeToken<Actor>, path: string) {
+        const isDynamic = this.application.isDynamicToken;
+        const baseScale = isDynamic ? 1 : this.application.isPopoutToken ? 1.5 : 1;
 
         let scaleX = token.texture.scaleX < 0 ? baseScale * -1 : baseScale;
         let scaleY = token.texture.scaleY < 0 ? baseScale * -1 : baseScale;
 
-        if (isPF2e && (token.actor as ActorPF2e).size === "sm") {
+        if (this.#isPF2e && (token.actor as ActorPF2e).size === "sm") {
             scaleX *= 0.8;
             scaleY *= 0.8;
         }
@@ -288,26 +287,25 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             updates = R.mapKeys(updates, (key) => `prototypeToken.${key}`);
         }
 
-        if (isPF2e) {
-            updates[`flags.${game.system.id}.autoscale`] = isDynamic || !isPopout;
+        if (this.#isPF2e) {
+            updates[`flags.${game.system.id}.autoscale`] = isDynamic || !this.application.isPopoutToken;
         }
 
         return updates;
     }
 
     async #saveToken(source?: DirectorySource) {
-        const { base64, isDynamic, scale } = await this.application.getTokenBase64();
+        const base64 = await this.application.getTokenBase64();
         const path = await this.#saveImage("token", base64, source);
         if (!path) return;
 
         const actor = this.actor;
-        const isPF2e = R.isIncludedIn(game.system.id, ["pf2e", "sf2e"]);
 
         if (actor.token) {
-            const updates = this.#getTokenUpdates(actor.token, path, scale, isDynamic, isPF2e);
+            const updates = this.#getTokenUpdates(actor.token, path);
             await actor.token.update(updates);
         } else {
-            const actorUpdates = this.#getTokenUpdates(actor.prototypeToken, path, scale, isDynamic, isPF2e);
+            const actorUpdates = this.#getTokenUpdates(actor.prototypeToken, path);
             await actor.update(actorUpdates);
 
             const updatePromises = R.pipe(
@@ -317,7 +315,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
                         scene.tokens.contents,
                         R.filter((token) => token.actorId === actor.id && token.actorLink),
                         R.map((token) => {
-                            const updates = this.#getTokenUpdates(token, path, scale, isDynamic, isPF2e);
+                            const updates = this.#getTokenUpdates(token, path);
                             return { ...updates, _id: token.id };
                         }),
                     );

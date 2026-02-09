@@ -85,20 +85,8 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         return 300;
     }
 
-    get previewTokenRation(): number {
-        return 0.85;
-    }
-
-    get previewDynamicRatio(): number {
-        return 0.66;
-    }
-
     get previewTokenSize(): number {
-        return this.previewSize * this.previewTokenRation;
-    }
-
-    get previewScaledTokenSize(): number {
-        return this.previewTokenSize * (this.isDynamicToken ? this.previewDynamicRatio / this.previewTokenRation : 1);
+        return this.previewSize * (this.isPopoutToken || this.isDynamicToken ? 0.66 : 1);
     }
 
     get ring(): string {
@@ -161,6 +149,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         }
 
         this.#parent.resetMasks();
+        this.#setPreview();
         this.#setPreviewMask();
     }
 
@@ -217,25 +206,9 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         return this.renderer.extract.base64(this.#avatar, "image/webp");
     }
 
-    async getTokenBase64(): Promise<{ base64: string; isDynamic: boolean; scale: number }> {
-        const isDynamic = this.isDynamicToken;
-        const rect = this.#getTokenRect();
-
-        return {
-            base64: await this.renderer.extract.base64(this.#preview, "image/webp", undefined, rect),
-            isDynamic,
-            scale: isDynamic ? 1 : this.isPopoutToken ? 1.2 : 1, // magic number, we know the border/preview ratio
-        };
-    }
-
-    #getTokenRect() {
-        if (this.isPopoutToken || this.isDynamicToken) {
-            return new PIXI.Rectangle(this.#preview.x, this.#preview.y, this.previewSize, this.previewSize);
-        }
-
-        const { x, y } = this.#previewBorder.getGlobalPosition();
-        const { width, height } = this.#previewBorder;
-        return new PIXI.Rectangle(x - width / 2, y - height / 2, this.previewTokenSize, this.previewTokenSize);
+    async getTokenBase64(): Promise<string> {
+        const rect = new PIXI.Rectangle(this.#preview.x, this.#preview.y, this.previewSize, this.previewSize);
+        return this.renderer.extract.base64(this.#preview, "image/webp", undefined, rect);
     }
 
     #onMouseWheel(event: PIXI.FederatedWheelEvent) {
@@ -298,13 +271,17 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     }
 
     #setPreview() {
+        const size = this.previewTokenSize;
         const alpha = this.isDynamicToken ? 0 : 1;
-        this.#previewBackground.alpha = alpha;
-        this.#previewBorder.alpha = alpha;
 
-        const scale = this.isDynamicToken ? 0.66 / 0.85 : 1;
-        this.#editorBorder.scale.set(scale);
-        this.#previewBorder.scale.set(scale);
+        this.#editorBorder.width = size;
+        this.#editorBorder.height = size;
+
+        for (const sprite of [this.#previewBackground, this.#previewBorder]) {
+            sprite.alpha = alpha;
+            sprite.width = size;
+            sprite.height = size;
+        }
     }
 
     #setPreviewMask() {
@@ -315,7 +292,7 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         }
 
         const size = this.previewSize;
-        const tokenSize = this.previewScaledTokenSize;
+        const tokenSize = this.previewTokenSize;
         const halfSize = size / 2;
         const tokenHalfSize = tokenSize / 2;
 
@@ -400,7 +377,6 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     #createPreview() {
         const screen = this.screen;
         const size = this.previewSize;
-        const tokenSize = this.previewTokenSize;
 
         const preview = (this.#preview = new PIXI.Container());
         preview.width = size;
@@ -419,10 +395,6 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
         const border = (this.#previewBorder = new PIXI.Sprite());
         border.texture = PIXI.Texture.from(this.borderImage);
-
-        const borderMask = drawCircleMask(0, 0, tokenSize / 2);
-        border.mask = borderMask;
-        border.addChild(borderMask);
 
         for (const sprite of [background, underImage, border, overImage]) {
             sprite.anchor.set(0.5);
