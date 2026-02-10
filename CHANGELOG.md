@@ -1,3 +1,18 @@
+# 2.2.0
+
+- now use a 2:3 ratio for popout non-dynamic tokens
+- now use a 1:1 ratio for non-popout non-dynamic tokens
+- now save token images at double the previous resolution
+- now add drop shadows to the token border as well as the inner part of the token image (if it has transparency)
+- replace previous rings with 4 newly created high resolution ones
+- add new marble backgrounds
+- move buttons from the preview panel into the newly added left menu
+  - replace the cycle token ring buttons into a select menu
+- complete rework of the popout feature
+  - the module now provides 4 customizable masks to select which sections of the token should popout
+  - you can set the `range`, `width` and `angle` of each masks
+  - a visual aid representing a mask is added to the editor
+
 # 2.1.1
 
 - fix non-popout dynamic token subject being off-center
