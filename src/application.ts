@@ -311,35 +311,33 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         this.#underMask = drawCircleMask(halfSize, halfSize, tokenHalfSize);
         this.#overMask = new PIXI.Graphics();
 
-        if (this.isPopoutToken) {
-            this.#overMask.x = halfSize;
-            this.#overMask.y = halfSize;
+        this.#overMask.x = halfSize;
+        this.#overMask.y = halfSize;
 
-            for (const { id, color, angle, range, width } of this.masks) {
-                const editorMask = this.#editorMasks.get(id) as PIXI.Graphics;
+        for (const { id, color, angle, range, width } of this.masks) {
+            const editorMask = this.#editorMasks.get(id) as PIXI.Graphics;
 
-                if (range <= 0 || width <= 0) {
-                    editorMask.alpha = 0;
-                    continue;
-                }
-
-                const top = halfSize - halfSize * range;
-                const side = halfSize * width;
-                const mask = drawRectangleMask(halfSize - side, top, side * 2, halfSize - top);
-
-                mask.pivot.set(halfSize);
-                mask.angle = angle;
-
-                editorMask.clear();
-                editorMask.lineStyle(1, color);
-                editorMask.drawRect(0, 0, side * 2, halfSize - top);
-                editorMask.pivot.set(editorMask.width / 2, editorMask.height);
-
-                editorMask.alpha = 0.5;
-                editorMask.angle = angle;
-
-                this.#overMask.addChild(mask);
+            if (!this.isPopoutToken || range <= 0 || width <= 0) {
+                editorMask.alpha = 0;
+                continue;
             }
+
+            const top = halfSize - halfSize * range;
+            const side = halfSize * width;
+            const mask = drawRectangleMask(halfSize - side, top, side * 2, halfSize - top);
+
+            mask.pivot.set(halfSize);
+            mask.angle = angle;
+
+            editorMask.clear();
+            editorMask.lineStyle(1, color);
+            editorMask.drawRect(0, 0, side * 2, halfSize - top);
+            editorMask.pivot.set(editorMask.width / 2, editorMask.height);
+
+            editorMask.alpha = 0.5;
+            editorMask.angle = angle;
+
+            this.#overMask.addChild(mask);
         }
 
         this.#underImage.mask = this.#underMask;
@@ -405,14 +403,16 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         const overImage = (this.#overImage = new PIXI.Sprite());
         const underImage = (this.#underImage = new PIXI.Sprite());
 
+        const underImageShadow = new DropShadowFilter();
+        underImage.filters ??= [];
+        underImage.filters.push(underImageShadow);
+
         const border = (this.#previewBorder = new PIXI.Sprite());
         border.texture = PIXI.Texture.from(this.borderImage);
 
-        for (const sprite of [this.#underImage, border]) {
-            const shadow = new DropShadowFilter();
-            sprite.filters ??= [];
-            sprite.filters.push(shadow);
-        }
+        const borderShadow = new DropShadowFilter({ blur: 4, offset: { x: 0, y: 0 }, quality: 4 });
+        border.filters ??= [];
+        border.filters.push(borderShadow);
 
         for (const sprite of [background, underImage, border, overImage]) {
             sprite.anchor.set(0.5);
