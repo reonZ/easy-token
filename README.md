@@ -67,10 +67,6 @@ A default path is provided for each one in the form of:
 
 - for `s3` "images/[avatar or token]s/[actor-type]s"
 
-## LICENSE
-
-The token rings used in this module come from [RollAdvantage](https://rolladvantage.com/tokenstamp/) under the [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/) license.
-
 ## CHANGELOG
 
 You can see the changelog [HERE](https://github.com/reonZ/easy-token/blob/master/CHANGELOG.md)
