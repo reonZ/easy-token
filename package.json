@@ -21,6 +21,7 @@
         "typescript": "^5.9.3"
     },
     "dependencies": {
-        "foundry-helpers": "github:reonZ/foundry-helpers"
+        "foundry-helpers": "github:reonZ/foundry-helpers",
+        "pixi-filters": "^5.3.0"
     }
 }

@@ -11,6 +11,7 @@ import {
     subtractPoint,
 } from "foundry-helpers";
 import { Point } from "foundry-pf2e/foundry/common/_types.mjs";
+import { DropShadowFilter } from "pixi-filters";
 
 const MASKS_COLORS = ["#ff0000", "#00ff00", "#0051ff"];
 
@@ -406,6 +407,12 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
 
         const border = (this.#previewBorder = new PIXI.Sprite());
         border.texture = PIXI.Texture.from(this.borderImage);
+
+        for (const sprite of [this.#underImage, border]) {
+            const shadow = new DropShadowFilter();
+            sprite.filters ??= [];
+            sprite.filters.push(shadow);
+        }
 
         for (const sprite of [background, underImage, border, overImage]) {
             sprite.anchor.set(0.5);
