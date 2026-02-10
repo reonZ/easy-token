@@ -139,24 +139,22 @@
             border: 1px solid var(--color-border);
             border-right-color: transparent;
             border-bottom-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
-            .ring-cycle {
-                position: absolute;
-                bottom: 0;
-                font-size: 1.8em;
-                opacity: 0.2;
+            .loader {
+                --fa-animation-duration: 3s;
+
+                display: none;
+                font-size: 8em;
             }
 
-            .ring-cycle {
-                right: 0.3rem;
-                display: flex;
-                align-items: center;
-                gap: 0.3rem;
-            }
+            &.load {
+                background: var(--background);
 
-            &:hover {
-                .ring-cycle {
-                    opacity: 1;
+                .loader {
+                    display: block;
                 }
             }
         }

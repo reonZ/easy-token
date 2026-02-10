@@ -208,8 +208,18 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
     }
 
     async getTokenBase64(): Promise<string> {
-        const rect = new PIXI.Rectangle(this.#preview.x, this.#preview.y, this.previewSize, this.previewSize);
-        return this.renderer.extract.base64(this.#preview, "image/webp", undefined, rect);
+        this.#preview.scale.set(2);
+
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                const size = this.previewSize * 2;
+                const rect = new PIXI.Rectangle(this.#preview.x, this.#preview.y, size, size);
+                const base64 = this.renderer.extract.base64(this.#preview, "image/webp", 1, rect);
+
+                resolve(base64);
+                this.#preview.scale.set(1);
+            }, 200);
+        });
     }
 
     #onMouseWheel(event: PIXI.FederatedWheelEvent) {

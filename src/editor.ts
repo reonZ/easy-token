@@ -145,7 +145,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
 
         switch (action) {
             case "download": {
-                const base64 = await this.application.getTokenBase64();
+                const base64 = await this.#getTokenBase64();
                 const blob = await fetch(base64).then((result) => result.blob());
 
                 const link = document.createElement("a");
@@ -294,8 +294,16 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         return updates;
     }
 
-    async #saveToken(source?: DirectorySource) {
+    async #getTokenBase64(): Promise<string> {
+        const preview = htmlQuery(this.element, ".preview");
+        preview?.classList.add("load");
         const base64 = await this.application.getTokenBase64();
+        preview?.classList.remove("load");
+        return base64;
+    }
+
+    async #saveToken(source?: DirectorySource) {
+        const base64 = await this.#getTokenBase64();
         const path = await this.#saveImage("token", base64, source);
         if (!path) return;
 
