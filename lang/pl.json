@@ -1,0 +1,69 @@
+{
+  "easy-token": {
+    "settings": {
+      "menus": {
+        "directories": {
+          "name": "Katalogi",
+          "label": "Konfiguracja katalogów",
+          "hint": "Przekaż katalogi dla różnych typów aktorów."
+        }
+      }
+    },
+    "directories": {
+      "avatar": "Awatar",
+      "cancel": "Anuluj",
+      "save": "Zapisz",
+      "source": {
+        "label": "Źródło",
+        "hint": "Źródło danych, do którego plik zostanie przesłany."
+      },
+      "title": "Katalogi typów aktorów",
+      "token": "Token"
+    },
+    "editor": {
+      "background": {
+        "background-plain": "Zwykłe tło",
+        "background-marble": "Marmurowe tło",
+        "background-noise": "Tło szumu",
+        "label": "Tło"
+      },
+      "border": "Obwódka",
+      "download": "Pobierz obraz tokena",
+      "load-avatar": "Załaduj obraz awatara",
+      "mask": {
+        "add": "Dodaj nową maskę",
+        "angle": "Kąt",
+        "range": "Zakres",
+        "title": "Użyj wyświetlanych masek",
+        "width": "Szerokość"
+      },
+      "open-local": "Otwórz lokalny obraz",
+      "open-server": "Otwórz obraz serwera",
+      "popout": {
+        "both": "Pełne wyskakujące okienko",
+        "bottom": "Dolne wyskakujące okienko",
+        "disabled": "Bez wyskakujących okienek",
+        "top": "Górne wyskakujące okienko"
+      },
+      "ring": {
+        "dynamic": "Pierścień dynamiczny",
+        "label": "Pierścień dynamiczny {number}"
+      },
+      "save-all": "Zapisz wszystko i zamknij",
+      "save-avatar": "Zapisz obraz awatara",
+      "save-token": "Zapisz obraz tokena",
+      "saved": {
+        "avatar": "Obraz awatara został pomyślnie zapisany w lokalizacji „{path}”.",
+        "token": "Obraz tokenu został pomyślnie zapisany w lokalizacji „{path}”."
+      },
+      "token": {
+        "title": "Token"
+      },
+      "warning": {
+        "actor": "Ten aktor nie jest powiązany, tokeny już umieszczone w scenach nie zostaną zaktualizowane.",
+        "token": "Ten token nie jest powiązany z żadnym podmiotem, zmiany będą miały zastosowanie wyłącznie do tego konkretnego tokenu."
+      }
+    },
+    "label": "Easy-Token"
+  }
+}
