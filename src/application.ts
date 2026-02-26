@@ -10,7 +10,6 @@ import {
     R,
     subtractPoint,
 } from "foundry-helpers";
-import { Point } from "foundry-pf2e/foundry/common/_types.mjs";
 import { DropShadowFilter } from "pixi-filters";
 
 const MASKS_COLORS = ["#ff0000", "#00ff00", "#0051ff"];
