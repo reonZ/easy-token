@@ -1,0 +1,69 @@
+{
+  "easy-token": {
+    "settings": {
+      "menus": {
+        "directories": {
+          "name": "Répertoires",
+          "label": "Configurer les répertoires",
+          "hint": "Téléchargez les répertoires correspondant aux différents types d'acteurs."
+        }
+      }
+    },
+    "directories": {
+      "avatar": "Avatar",
+      "cancel": "Annuler",
+      "save": "Sauvegarder",
+      "source": {
+        "label": "Source",
+        "hint": "La source de données vers laquelle le fichier sera téléchargé."
+      },
+      "title": "Répertoires des types d'acteurs",
+      "token": "Jeton"
+    },
+    "editor": {
+      "background": {
+        "background-plain": "Fond uni",
+        "background-marble": "Fond en marbre",
+        "background-noise": "Fond parasité",
+        "label": "Fond"
+      },
+      "border": "Bordure",
+      "download": "Télécharger l'image du jeton",
+      "load-avatar": "Charger l'image de l'avatar",
+      "mask": {
+        "add": "Ajouter un nouveau masque",
+        "angle": "Angle",
+        "range": "Gamme",
+        "title": "Utiliser des masques popout",
+        "width": "Largeur"
+      },
+      "open-local": "Ouvrir l'image locale",
+      "open-server": "Ouvrir l'image du serveur",
+      "popout": {
+        "both": "Popout complet",
+        "bottom": "Popout en dessous",
+        "disabled": "Pas de popout",
+        "top": "Popout au-dessus"
+      },
+      "ring": {
+        "dynamic": "Anneau dynamique",
+        "label": "Anneau du jeton {number}"
+      },
+      "save-all": "Tout enregistrer & fermer",
+      "save-avatar": "Enregistrer l'image de l'avatar",
+      "save-token": "Enregistrer l'image du jeton",
+      "saved": {
+        "avatar": "L'image de l'avatar a été enregistrée avec succès '{path}'",
+        "token": "L'image du jeton a été enregistrée avec succès '{path}'"
+      },
+      "token": {
+        "title": "Jeton"
+      },
+      "warning": {
+        "actor": "Cet acteur n'est pas lié. Les jetons déjà placés sur vos scènes ne seront pas mis à jour.",
+        "token": "Ce jeton n'est lié à aucun acteur. Les modifications ne seront appliquées qu'à ce jeton spécifique."
+      }
+    },
+    "label": "Jeton facile"
+  }
+}
