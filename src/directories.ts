@@ -75,10 +75,14 @@ export class DirectoriesMenu extends foundry.applications.api.ApplicationV2 {
             return this.close();
         }
 
-        const { source, ...paths } = createFormData(this.element, true);
+        const formData = createFormData(this.element, true);
 
-        await setSetting("source", source);
-        await setSetting("paths", paths);
+        if (formData) {
+            const { source, ...paths } = formData;
+
+            await setSetting("source", source);
+            await setSetting("paths", paths);
+        }
 
         this.close();
     }

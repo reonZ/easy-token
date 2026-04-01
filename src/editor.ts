@@ -8,7 +8,6 @@ import {
     htmlQuery,
     localize,
     MODULE,
-    notify,
     R,
     render,
     setSetting,
@@ -241,7 +240,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
             const path = R.isObjectType(response) && response.status === "success" ? response.path : undefined;
 
             if (path) {
-                notify.info("editor.saved", category, { path });
+                localize.info("editor.saved", category, { path });
                 // we add cache buster
                 return `${path}?${Date.now()}`;
             }
@@ -265,7 +264,7 @@ export class TokenEditor extends foundry.applications.api.ApplicationV2 {
         let scaleX = token.texture.scaleX < 0 ? baseScale * -1 : baseScale;
         let scaleY = token.texture.scaleY < 0 ? baseScale * -1 : baseScale;
 
-        if (this.#isPF2e && (token.actor as ActorPF2e).size === "sm") {
+        if (this.#isPF2e && (token.actor as unknown as ActorPF2e).size === "sm") {
             scaleX *= 0.8;
             scaleY *= 0.8;
         }

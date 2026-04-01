@@ -1,8 +1,7 @@
 import { DirectoriesMenu } from "directories";
 import { TokenEditor } from "editor";
-import { localize, MODULE, registerSetting, registerSettingMenu } from "foundry-helpers";
+import { ApplicationV1HeaderButton, localize, MODULE, registerSetting, registerSettingMenu } from "foundry-helpers";
 import { ApplicationHeaderControlsEntry } from "foundry-pf2e/foundry/client/applications/_types.mjs";
-import { ApplicationV1HeaderButton } from "foundry-pf2e/foundry/client/appv1/api/_module.mjs";
 import ActorSheet from "foundry-pf2e/foundry/client/appv1/sheets/actor-sheet.mjs";
 
 MODULE.register("easy-token");
