@@ -8,13 +8,11 @@
             "discord": "idleatre"
         }
     ],
-    "esmodules": [
-        "scripts/main.js"
-    ],
+    "esmodules": ["scripts/main.js"],
     "compatibility": {
         "minimum": "13.351",
-        "verified": "13.351",
-        "maximum": "13"
+        "verified": "14.359",
+        "maximum": "14"
     },
     "version": "2.2.0",
     "url": "https://github.com/reonZ/easy-token",
@@ -23,9 +21,7 @@
     "download": "https://github.com/reonZ/easy-token/releases/download/2.2.0/module.zip",
     "changelog": "https://github.com/reonZ/easy-token/releases",
     "bugs": "https://github.com/reonZ/easy-token/issues",
-    "styles": [
-        "styles/easy-token.css"
-    ],
+    "styles": ["styles/easy-token.css"],
     "languages": [
         {
             "lang": "en",
