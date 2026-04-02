@@ -5,6 +5,7 @@ import {
     drawCircleMask,
     drawRectangleMask,
     getSetting,
+    ImageFilePath,
     MODULE,
     multiplyPointBy,
     R,
@@ -98,16 +99,16 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         return this.#backgrounds.current;
     }
 
-    get borderImage(): string {
-        return MODULE.imagePath(this.#rings.current);
+    get borderImage(): ImageFilePath {
+        return MODULE.imagePath(this.#rings.current, "webp");
     }
 
-    get backgroundImage(): string {
-        return MODULE.imagePath(this.#backgrounds.current);
+    get backgroundImage(): ImageFilePath {
+        return MODULE.imagePath(this.#backgrounds.current, "webp");
     }
 
-    get dropImage(): string {
-        return MODULE.imagePath("drop");
+    get dropImage(): ImageFilePath {
+        return MODULE.imagePath("drop", "webp");
     }
 
     get isPopoutToken(): boolean {
