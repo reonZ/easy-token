@@ -1,3 +1,7 @@
+# 2.3.0
+
+- add compatibility to foundry version `14.359`
+
 # 2.2.0
 
 - now use a 2:3 ratio for popout non-dynamic tokens
