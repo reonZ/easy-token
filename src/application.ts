@@ -228,8 +228,12 @@ export class EditorApplication extends PIXI.Application<HTMLCanvasElement> {
         const delta = event.deltaY >= 0 ? -1 : 1;
 
         const current = avatar.scale.x;
-        const change = current > 5 ? 0.5 : current > 2 ? 0.2 : current > 1 ? 0.05 : 0.02;
-        const value = Math.max(current + delta * change, 0.1);
+        const maxSize = Math.max(avatar.texture.width, avatar.texture.height);
+        const resRatio = maxSize > 4000 ? 3 : maxSize > 2000 ? 2 : 1;
+        const ratioedCurrent = current * resRatio;
+        const change = ratioedCurrent > 5 ? 0.5 : ratioedCurrent > 2 ? 0.2 : ratioedCurrent > 1 ? 0.05 : 0.02;
+        const minScale = 0.1 / resRatio;
+        const value = Math.max(current + delta * (change / resRatio), minScale);
         const global = this.renderer.events.pointer.global;
         const local = avatar.toLocal(global);
         const newLocal = multiplyPointBy(dividePoints(local, avatar.scale), value);
