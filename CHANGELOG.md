@@ -1,3 +1,13 @@
+# 2.4.0
+
+- the module now allows more zoom-in for high def images
+  - the bigger the resolution, the more zoom is allowed (though you shouldn't use 4k images for tokens)
+  - it will try to smooth the zoom increments depending on the image size
+- expose the `open` function to the api to directly open the editor via code/macro
+  - `game.easyToken?.api.open(actor?: Actor): Promise<TokenEditor | void>`
+  - it can be a world or token actor
+  - if no actor is provided, the module will fallback to your currently selected token (if unique) or the user assigned character
+
 # 2.3.0
 
 - add compatibility to foundry version `14.359`

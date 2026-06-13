@@ -69,6 +69,18 @@ A default path is provided for each one in the form of:
 
 - for `s3` "images/[avatar or token]s/[actor-type]s"
 
+## API
+
+```js
+/**
+ * Open the easy-token editor
+ *
+ * @param [actor] world or token actor for whom the editor should be open.
+ * if not provided, the module will fallback to your currently selected token (if unique) or the user assigned character.
+ */
+game.easyToken?.api.open(actor?: Actor): Promise<TokenEditor | void>
+```
+
 ## CHANGELOG
 
 You can see the changelog [HERE](https://github.com/reonZ/easy-token/blob/master/CHANGELOG.md)
