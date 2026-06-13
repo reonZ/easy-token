@@ -1,6 +1,6 @@
 import { DirectoriesMenu } from "directories";
 import { TokenEditor } from "editor";
-import { ApplicationV1HeaderButton, localize, MODULE, registerSetting, registerSettingMenu } from "foundry-helpers";
+import { ApplicationV1HeaderButton, localize, MODULE, R, registerSetting, registerSettingMenu } from "foundry-helpers";
 import { ApplicationHeaderControlsEntry } from "foundry-pf2e/foundry/client/applications/_types.mjs";
 import ActorSheet from "foundry-pf2e/foundry/client/appv1/sheets/actor-sheet.mjs";
 
@@ -58,4 +58,9 @@ Hooks.on("getHeaderControlsActorSheetV2", (sheet: ActorSheet<Actor>, buttons: Ap
             TokenEditor.open(sheet.actor);
         },
     });
+});
+
+MODULE.apiExpose("open", async (actor?: Actor | null) => {
+    actor = actor instanceof Actor ? actor : (R.first(canvas.tokens.controlled)?.actor ?? game.user.character);
+    return actor && TokenEditor.open(actor);
 });
