@@ -1,3 +1,7 @@
+# 2.4.1
+
+- add spanish localization (thanks to [HonzoNebro](https://github.com/HonzoNebro))
+
 # 2.4.0
 
 - the module now allows more zoom-in for high def images
