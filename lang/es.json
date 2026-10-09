@@ -1,0 +1,69 @@
+{
+  "easy-token": {
+    "settings": {
+      "menus": {
+        "directories": {
+          "name": "Directorios",
+          "label": "Configurar directorios",
+          "hint": "Sube los directorios para los diferentes tipos de actores."
+        }
+      }
+    },
+    "directories": {
+      "avatar": "Avatar",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "source": {
+        "label": "Fuente",
+        "hint": "La fuente de datos a la que se subirá el archivo."
+      },
+      "title": "Directorios de tipos de actores",
+      "token": "Token"
+    },
+    "editor": {
+      "background": {
+        "background-plain": "Fondo simple",
+        "background-marble": "Fondo de mármol",
+        "background-noise": "Ruido de fondo",
+        "label": "Fondo"
+      },
+      "border": "Borde",
+      "download": "Descargar imagen del token",
+      "load-avatar": "Cargar imagen de avatar",
+      "mask": {
+        "add": "Agregar nueva máscara",
+        "angle": "Ángulo",
+        "range": "Rango",
+        "title": "Usar máscaras emergentes",
+        "width": "Ancho"
+      },
+      "open-local": "Abrir imagen local",
+      "open-server": "Abrir imagen del servidor",
+      "popout": {
+        "both": "Sobresalir por ambos lados",
+        "bottom": "Sobresalir por abajo",
+        "disabled": "Sin sobresalir",
+        "top": "Sobresalir por arriba"
+      },
+      "ring": {
+        "dynamic": "Anillo dinámico",
+        "label": "Anillo de token {número}"
+      },
+      "save-all": "Guardar todo y cerrar",
+      "save-avatar": "Guardar imagen de avatar",
+      "save-token": "Guardar imagen del token",
+      "saved": {
+        "avatar": "La imagen del avatar se guardó correctamente '{path}'.",
+        "token": "La imagen del token se guardó correctamente '{path}'."
+      },
+      "token": {
+        "title": "Token"
+      },
+      "warning": {
+        "actor": "Este actor no está vinculado, los tokens ya colocados en tus escenas no se actualizarán.",
+        "token": "Este token no está vinculado a ningún actor; los cambios solo se aplicarán a este token en particular."
+      }
+    },
+    "label": "Easy-Token"
+  }
+}
